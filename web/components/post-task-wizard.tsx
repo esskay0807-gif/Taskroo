@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type Path, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,12 +14,12 @@ import {
   uploadFile,
   type TaskCreateInput,
 } from "@/lib/api";
+import { categoryIcon, servicesFor } from "@/lib/catalog";
 import { formatBudget } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 const schema = z
@@ -97,6 +97,8 @@ export function PostTaskWizard() {
   const [step, setStep] = useState(0);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  // "Something else" — let the user type a custom title instead of picking a service.
+  const [custom, setCustom] = useState(() => initialTitle() !== "");
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -134,6 +136,20 @@ export function PostTaskWizard() {
   });
 
   const locationType = watch("location_type");
+  const categoryId = watch("category_id");
+  const title = watch("title");
+  const selectedCategory = categories?.find((c) => c.id === categoryId);
+  const services = selectedCategory ? servicesFor(selectedCategory.slug) : [];
+
+  // Pre-select a category from ?category=<slug> (deep links from the home page).
+  useEffect(() => {
+    if (!categories) return;
+    const slug = new URLSearchParams(window.location.search).get("category");
+    if (slug && !getValues("category_id")) {
+      const match = categories.find((c) => c.slug === slug);
+      if (match) setValue("category_id", match.id);
+    }
+  }, [categories, getValues, setValue]);
 
   async function next() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -203,49 +219,126 @@ export function PostTaskWizard() {
       </div>
 
       {step === 0 && (
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="title">Task title</Label>
-            <Input
-              id="title"
-              className="h-12 text-base"
-              {...register("title")}
-              placeholder="e.g. Deep clean my 2-bedroom apartment"
-            />
-            {errors.title && (
-              <p className="text-xs text-red-600">{errors.title.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              className="min-h-32"
-              {...register("description")}
-              placeholder="Share the details — what, when, and anything a tasker should know."
-            />
-            {errors.description && (
-              <p className="text-xs text-red-600">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Category</Label>
-            <Select className="h-12" {...register("category_id")}>
-              <option value="">Select a category…</option>
-              {categories?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-            {errors.category_id && (
-              <p className="text-xs text-red-600">
-                {errors.category_id.message}
-              </p>
-            )}
-          </div>
+        <div className="space-y-6">
+          {/* Keep title/category in the form; they're set by the pickers below. */}
+          <input type="hidden" {...register("title")} />
+          <input type="hidden" {...register("category_id")} />
+
+          {!selectedCategory ? (
+            /* 1) Pick a category */
+            <div>
+              <p className="mb-3 text-sm font-medium">Choose a category</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {categories?.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setValue("category_id", c.id, { shouldValidate: true });
+                      setValue("title", "");
+                      setCustom(false);
+                    }}
+                    className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-colors hover:border-primary/50 hover:bg-accent/40"
+                  >
+                    <span className="text-2xl">{categoryIcon(c.slug)}</span>
+                    <span className="text-sm font-medium">{c.name}</span>
+                  </button>
+                ))}
+              </div>
+              {errors.category_id && (
+                <p className="mt-2 text-xs text-red-600">
+                  {errors.category_id.message}
+                </p>
+              )}
+            </div>
+          ) : (
+            /* 2) Pick a service within the category */
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
+                  {categoryIcon(selectedCategory.slug)} {selectedCategory.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("category_id", "");
+                    setValue("title", "");
+                    setCustom(false);
+                  }}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Change
+                </button>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium">What do you need?</p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {services.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setValue("title", s, { shouldValidate: true });
+                        setCustom(false);
+                      }}
+                      className={cn(
+                        "rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                        !custom && title === s
+                          ? "border-primary bg-accent font-medium"
+                          : "border-border hover:border-primary/40",
+                      )}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustom(true);
+                      setValue("title", "");
+                    }}
+                    className={cn(
+                      "rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                      custom
+                        ? "border-primary bg-accent font-medium"
+                        : "border-dashed border-border hover:border-primary/40",
+                    )}
+                  >
+                    ✏️ Something else…
+                  </button>
+                </div>
+                {custom && (
+                  <Input
+                    autoFocus
+                    className="mt-3 h-12"
+                    {...register("title")}
+                    placeholder="Describe your task in a few words"
+                  />
+                )}
+                {errors.title && (
+                  <p className="mt-2 text-xs text-red-600">
+                    {errors.title.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Add details</Label>
+                <Textarea
+                  id="description"
+                  className="min-h-32"
+                  {...register("description")}
+                  placeholder="Share the details — what, when, and anything a tasker should know."
+                />
+                {errors.description && (
+                  <p className="text-xs text-red-600">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { getCategories, type Category } from "@/lib/api";
+import { categoryIcon } from "@/lib/catalog";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -108,11 +109,11 @@ export default async function Home() {
             {chips.map((c) => (
               <Link
                 key={c.id}
-                href={`/post?title=${encodeURIComponent(c.name)}`}
+                href={`/post?category=${c.slug}`}
                 className="group rounded-2xl border bg-card p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
               >
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
-                  <CategoryIcon slug={c.slug} />
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl text-accent-foreground">
+                  {categoryIcon(c.slug)}
                 </div>
                 <span className="text-sm font-semibold">{c.name}</span>
               </Link>
@@ -149,22 +150,4 @@ export default async function Home() {
       </section>
     </main>
   );
-}
-
-function CategoryIcon({ slug }: { slug: string }) {
-  const map: Record<string, string> = {
-    cleaning: "🧽",
-    handyman: "🔧",
-    "furniture-assembly": "🪑",
-    "moving-delivery": "📦",
-    gardening: "🌿",
-    painting: "🎨",
-    electrical: "💡",
-    plumbing: "🚰",
-    "appliance-repair": "🛠️",
-    tutoring: "📚",
-    photography: "📷",
-    "web-design": "💻",
-  };
-  return <span className="text-2xl">{map[slug] ?? "✅"}</span>;
 }
