@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 export function MeCard() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -34,11 +36,23 @@ export function MeCard() {
   }
 
   return (
-    <div className="rounded-lg border p-4 text-left text-sm">
-      <p className="mb-2 font-medium">GET /v1/me</p>
-      <pre className="overflow-x-auto whitespace-pre-wrap break-all">
-        {JSON.stringify(data, null, 2)}
-      </pre>
+    <div className="w-full space-y-4">
+      <div className="flex justify-center gap-3">
+        <Button asChild>
+          <Link href="/settings">Edit profile</Link>
+        </Button>
+        {data && (
+          <Button asChild variant="outline">
+            <Link href={`/profile/${data.id}`}>My public profile</Link>
+          </Button>
+        )}
+      </div>
+      <div className="rounded-lg border p-4 text-left text-sm">
+        <p className="mb-2 font-medium">GET /v1/me</p>
+        <pre className="overflow-x-auto whitespace-pre-wrap break-all">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      </div>
     </div>
   );
 }

@@ -28,9 +28,29 @@ class Settings(BaseSettings):
     # CORS — comma-separated list of allowed web origins.
     cors_origins: str = "http://localhost:3000"
 
+    # Public base URL of this API — used to build dev upload URLs when R2 is unconfigured.
+    api_base_url: str = "http://localhost:8000"
+
+    # Cloudflare R2 (S3-compatible) for avatar uploads. Leave blank to use the local
+    # dev upload fallback (presign returns a URL served by this API instead of R2).
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = ""
+    r2_public_base_url: str = ""  # public base for objects, e.g. https://cdn.example.com
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def r2_configured(self) -> bool:
+        return bool(
+            self.r2_account_id
+            and self.r2_access_key_id
+            and self.r2_secret_access_key
+            and self.r2_bucket
+        )
 
 
 @lru_cache
