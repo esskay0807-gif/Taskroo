@@ -8,6 +8,7 @@ import {
   listTasks,
   type TaskFilters,
 } from "@/lib/api";
+import { categoryIcon, searchServices } from "@/lib/catalog";
 import { TaskCard } from "@/components/task-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,17 @@ export default function BrowsePage() {
 
   const update = (patch: Partial<TaskFilters>) =>
     setFilters((f) => ({ ...f, ...patch }));
+
+  // Search typeahead
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const matches = searchServices(filters.q ?? "");
+  const showSuggestions = searchOpen && matches.length > 0;
+
+  function selectService(slug: string, service: string) {
+    update({ category: slug, q: service });
+    setSearchOpen(false);
+  }
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -50,14 +62,61 @@ export default function BrowsePage() {
 
       {/* Filters */}
       <div className="mb-8 grid grid-cols-1 gap-4 rounded-xl border bg-card p-5 shadow-sm sm:grid-cols-2">
-        <div className="space-y-1 sm:col-span-2">
+        <div className="relative space-y-1 sm:col-span-2">
           <Label htmlFor="q">Search</Label>
           <Input
             id="q"
-            placeholder="Search tasks…"
+            placeholder="Search tasks or services…"
+            autoComplete="off"
             value={filters.q ?? ""}
-            onChange={(e) => update({ q: e.target.value })}
+            onChange={(e) => {
+              update({ q: e.target.value });
+              setSearchOpen(true);
+              setActive(0);
+            }}
+            onFocus={() => setSearchOpen(true)}
+            onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
+            onKeyDown={(e) => {
+              if (!showSuggestions) return;
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setActive((a) => Math.min(a + 1, matches.length - 1));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setActive((a) => Math.max(a - 1, 0));
+              } else if (e.key === "Enter") {
+                e.preventDefault();
+                const m = matches[active];
+                if (m) selectService(m.slug, m.service);
+              } else if (e.key === "Escape") {
+                setSearchOpen(false);
+              }
+            }}
           />
+          {showSuggestions && (
+            <ul className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border bg-card shadow-xl">
+              {matches.map((m, i) => (
+                <li key={`${m.slug}-${m.service}`}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => selectService(m.slug, m.service)}
+                    className={
+                      "flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors " +
+                      (i === active ? "bg-accent/60" : "hover:bg-accent/40")
+                    }
+                  >
+                    <span className="text-base">{categoryIcon(m.slug)}</span>
+                    <span className="flex-1 font-medium">{m.service}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {m.category}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="space-y-1">
           <Label>Category</Label>
