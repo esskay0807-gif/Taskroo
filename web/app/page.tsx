@@ -18,13 +18,15 @@ const POPULAR = [
   "plumbing",
 ];
 
-const QUICK_TASKS = [
-  "Clean my apartment",
-  "Assemble flat-pack furniture",
-  "Help me move house",
-  "Fix a leaking tap",
-  "Mount a TV",
-  "Design a logo",
+// Popular tasks deep-link straight to a specific service (category + service),
+// so the wizard opens on that service with its detail prompts.
+const QUICK_TASKS: { label: string; slug: string; service: string }[] = [
+  { label: "Deep clean my home", slug: "cleaning", service: "Apartment deep clean" },
+  { label: "Assemble furniture", slug: "furniture-assembly", service: "IKEA furniture assembly" },
+  { label: "Help me move", slug: "moving-delivery", service: "Help moving house" },
+  { label: "Fix a leaking tap", slug: "plumbing", service: "Fix a leaking tap" },
+  { label: "Mount a TV", slug: "handyman", service: "Mount a TV" },
+  { label: "Design a logo", slug: "web-design", service: "Logo design" },
 ];
 
 async function fetchCategories(): Promise<Category[]> {
@@ -66,11 +68,11 @@ export default async function Home() {
             <span className="text-xs text-muted-foreground">Popular:</span>
             {QUICK_TASKS.map((t) => (
               <Link
-                key={t}
-                href={`/post?title=${encodeURIComponent(t)}`}
+                key={t.label}
+                href={`/post?category=${t.slug}&service=${encodeURIComponent(t.service)}`}
                 className="rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
               >
-                {t}
+                {t.label}
               </Link>
             ))}
           </div>
