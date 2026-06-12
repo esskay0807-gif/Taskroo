@@ -14,7 +14,7 @@ import {
   uploadFile,
   type TaskCreateInput,
 } from "@/lib/api";
-import { categoryIcon, servicesFor } from "@/lib/catalog";
+import { categoryIcon, promptsFor, servicesFor } from "@/lib/catalog";
 import { formatBudget } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 const schema = z
   .object({
     title: z.string().min(3, "At least 3 characters"),
-    description: z.string().min(1, "Required"),
+    description: z.string(),
     category_id: z.string().min(1, "Pick a category"),
     location_type: z.enum(["in_person", "remote"]),
     city: z.string(),
@@ -99,6 +99,8 @@ export function PostTaskWizard() {
   const [uploading, setUploading] = useState(false);
   // "Something else" — let the user type a custom title instead of picking a service.
   const [custom, setCustom] = useState(() => initialTitle() !== "");
+  // Answers to the per-service detail prompts.
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -140,6 +142,10 @@ export function PostTaskWizard() {
   const title = watch("title");
   const selectedCategory = categories?.find((c) => c.id === categoryId);
   const services = selectedCategory ? servicesFor(selectedCategory.slug) : [];
+  const prompts =
+    selectedCategory && (title.trim() !== "" || custom)
+      ? promptsFor(selectedCategory.slug, title)
+      : [];
 
   // Pre-select a category from ?category=<slug> (deep links from the home page).
   useEffect(() => {
@@ -172,11 +178,22 @@ export function PostTaskWizard() {
     }
   }
 
+  function composedDescription(v: FormValues): string {
+    const activePrompts = promptsFor(selectedCategory?.slug, v.title);
+    const lines = activePrompts
+      .filter((p) => answers[p.key]?.trim())
+      .map((p) => `${p.label}: ${answers[p.key]}`);
+    const details = v.description.trim();
+    return (
+      [lines.join("\n"), details].filter(Boolean).join("\n\n") || v.title.trim()
+    );
+  }
+
   function submit() {
     const v = getValues();
     const input: TaskCreateInput = {
       title: v.title.trim(),
-      description: v.description.trim(),
+      description: composedDescription(v),
       category_id: v.category_id,
       location_type: v.location_type,
       city: v.location_type === "in_person" ? v.city.trim() || null : null,
@@ -237,6 +254,7 @@ export function PostTaskWizard() {
                       setValue("category_id", c.id, { shouldValidate: true });
                       setValue("title", "");
                       setCustom(false);
+                      setAnswers({});
                     }}
                     className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-colors hover:border-primary/50 hover:bg-accent/40"
                   >
@@ -264,6 +282,7 @@ export function PostTaskWizard() {
                     setValue("category_id", "");
                     setValue("title", "");
                     setCustom(false);
+                    setAnswers({});
                   }}
                   className="text-sm font-medium text-primary hover:underline"
                 >
@@ -281,6 +300,7 @@ export function PostTaskWizard() {
                       onClick={() => {
                         setValue("title", s, { shouldValidate: true });
                         setCustom(false);
+                        setAnswers({});
                       }}
                       className={cn(
                         "rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
@@ -297,6 +317,7 @@ export function PostTaskWizard() {
                     onClick={() => {
                       setCustom(true);
                       setValue("title", "");
+                      setAnswers({});
                     }}
                     className={cn(
                       "rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
@@ -323,8 +344,52 @@ export function PostTaskWizard() {
                 )}
               </div>
 
+              {/* Per-service detail prompts */}
+              {prompts.length > 0 && (
+                <div className="space-y-4 rounded-xl bg-secondary/40 p-4">
+                  {prompts.map((p) => (
+                    <div key={p.key} className="space-y-1.5">
+                      <Label>{p.label}</Label>
+                      {p.type === "select" ? (
+                        <div className="flex flex-wrap gap-2">
+                          {p.options.map((opt) => (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() =>
+                                setAnswers((a) => ({
+                                  ...a,
+                                  [p.key]: a[p.key] === opt ? "" : opt,
+                                }))
+                              }
+                              className={cn(
+                                "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                                answers[p.key] === opt
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-card hover:border-primary/40",
+                              )}
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <Input
+                          value={answers[p.key] ?? ""}
+                          onChange={(e) =>
+                            setAnswers((a) => ({ ...a, [p.key]: e.target.value }))
+                          }
+                          placeholder={p.placeholder}
+                          className="h-11"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="description">Add details</Label>
+                <Label htmlFor="description">Add details (optional)</Label>
                 <Textarea
                   id="description"
                   className="min-h-32"
@@ -464,7 +529,7 @@ export function PostTaskWizard() {
         <div className="space-y-4 rounded-xl border bg-secondary/40 p-5">
           <p className="text-lg font-semibold">{v.title || "(no title)"}</p>
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-            {v.description}
+            {composedDescription(v)}
           </p>
           <dl className="grid grid-cols-1 gap-3 border-t pt-4 text-sm sm:grid-cols-2">
             <div>
