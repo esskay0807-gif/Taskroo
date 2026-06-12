@@ -3,20 +3,21 @@
  * the poster can freely adjust. Amounts are whole INR.
  */
 
-// Base range per category (INR).
+// Base range per category (INR). Kept narrow (~1.5–1.7x) so the suggested
+// min/max stay close together.
 const BASE: Record<string, [number, number]> = {
-  cleaning: [800, 1800],
-  handyman: [500, 1500],
-  "furniture-assembly": [600, 1500],
-  "moving-delivery": [1000, 2500],
-  gardening: [600, 1500],
-  painting: [2000, 6000],
-  electrical: [500, 1500],
-  plumbing: [500, 1500],
-  "appliance-repair": [600, 1800],
-  tutoring: [400, 1000],
-  photography: [3000, 10000],
-  "web-design": [3000, 12000],
+  cleaning: [1000, 1500],
+  handyman: [600, 1000],
+  "furniture-assembly": [700, 1100],
+  "moving-delivery": [1200, 2000],
+  gardening: [600, 1000],
+  painting: [2500, 4000],
+  electrical: [600, 1000],
+  plumbing: [600, 1000],
+  "appliance-repair": [700, 1100],
+  tutoring: [400, 600],
+  photography: [3000, 5000],
+  "web-design": [4000, 7000],
 };
 
 // "Size / quantity" answers — the dominant one scales the range.
