@@ -1,5 +1,12 @@
 # TaskMarket
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+
 A two-sided task marketplace (Airtasker-style). **Phase 1** is the web platform; Phase 2 will be
 native mobile apps consuming the **same** JSON API.
 
@@ -89,3 +96,7 @@ Phase 1 was built in milestones **M0–M7**, one commit each:
 Per `CLAUDE.md`: insurance, AI task-writing, automated disputes/refunds, advanced badges
 (background checks, trade licenses), offer-expiry timers, recurring tasks, business/team
 accounts, and native mobile apps.
+
+## License
+
+[MIT](./LICENSE) © 2026 esskay0807-gif
