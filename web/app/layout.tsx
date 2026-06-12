@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { Providers } from "./providers";
+import { TopBar } from "@/components/top-bar";
 
 export const metadata: Metadata = {
   title: "TaskMarket",
@@ -17,7 +18,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="antialiased">
-          <Providers>{children}</Providers>
+          <Providers>
+            <TopBar />
+            {children}
+          </Providers>
         </body>
       </html>
     </ClerkProvider>

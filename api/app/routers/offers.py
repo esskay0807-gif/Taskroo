@@ -10,7 +10,14 @@ from app.models.enums import OfferStatus, TaskStatus
 from app.models.offer import Offer
 from app.models.task import Task
 from app.schemas.offer import OfferCreate, OfferOut
-from app.services import conversation_service, offer_service, task_service
+from app.config import Settings, get_settings
+from app.models.enums import NotificationType
+from app.services import (
+    conversation_service,
+    notification_service,
+    offer_service,
+    task_service,
+)
 from app.services.user_service import upsert_user_from_principal
 
 router = APIRouter(tags=["offers"])
@@ -40,6 +47,7 @@ def create_offer(
     payload: OfferCreate,
     principal: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> OfferOut:
     me = upsert_user_from_principal(db, principal)
     task = _task_or_404(db, task_id)
@@ -72,6 +80,19 @@ def create_offer(
 
     # Open a conversation between the poster and this tasker (idempotent).
     conversation_service.get_or_create_conversation(db, task, me)
+
+    notification_service.notify(
+        db,
+        settings,
+        task.poster_id,
+        NotificationType.offer_received,
+        {
+            "task_id": str(task.id),
+            "task_title": task.title,
+            "amount": offer.amount,
+            "offer_id": str(offer.id),
+        },
+    )
     return OfferOut.model_validate(offer)
 
 
@@ -97,6 +118,7 @@ def accept_offer(
     offer_id: uuid.UUID,
     principal: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> OfferOut:
     me = upsert_user_from_principal(db, principal)
     offer = _offer_or_404(db, offer_id)
@@ -119,6 +141,14 @@ def accept_offer(
         )
 
     offer = offer_service.accept_offer(db, task, offer)
+
+    notification_service.notify(
+        db,
+        settings,
+        offer.tasker_id,
+        NotificationType.offer_accepted,
+        {"task_id": str(task.id), "task_title": task.title, "amount": offer.amount},
+    )
     return OfferOut.model_validate(offer)
 
 

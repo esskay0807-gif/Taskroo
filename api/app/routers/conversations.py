@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth.clerk import CurrentUser, get_current_user
+from app.config import Settings, get_settings
 from app.db import get_db
 from app.models.conversation import Conversation
+from app.models.enums import NotificationType
 from app.schemas.conversation import (
     ConversationOut,
     ConversationTaskSummary,
@@ -13,7 +15,7 @@ from app.schemas.conversation import (
     MessageOut,
 )
 from app.schemas.task import PosterSummary
-from app.services import conversation_service
+from app.services import conversation_service, notification_service
 from app.services.user_service import upsert_user_from_principal
 
 router = APIRouter(tags=["conversations"])
@@ -77,9 +79,25 @@ def post_message(
     payload: MessageCreate,
     principal: CurrentUser = Depends(get_current_user),
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> MessageOut:
     me = upsert_user_from_principal(db, principal)
     conv = _conversation_or_404(db, conversation_id)
     _require_participant(conv, me.id)
     message = conversation_service.create_message(db, conv, me.id, payload.body)
+
+    recipient_id = conv.tasker_id if me.id == conv.poster_id else conv.poster_id
+    preview = payload.body[:120]
+    notification_service.notify(
+        db,
+        settings,
+        recipient_id,
+        NotificationType.new_message,
+        {
+            "conversation_id": str(conv.id),
+            "task_id": str(conv.task_id),
+            "task_title": conv.task.title,
+            "preview": preview,
+        },
+    )
     return MessageOut.model_validate(message)

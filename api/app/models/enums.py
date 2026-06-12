@@ -33,3 +33,10 @@ class PaymentStatus(StrEnum):
 class ReviewRole(StrEnum):
     of_tasker = "of_tasker"  # poster reviewing the tasker
     of_poster = "of_poster"  # tasker reviewing the poster
+
+
+class NotificationType(StrEnum):
+    offer_received = "offer_received"
+    offer_accepted = "offer_accepted"
+    new_message = "new_message"
+    task_completed = "task_completed"

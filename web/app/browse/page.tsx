@@ -13,6 +13,7 @@ import { TaskCard } from "@/components/task-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BrowsePage() {
   const [filters, setFilters] = useState<TaskFilters>({ sort: "newest" });
@@ -134,7 +135,13 @@ export default function BrowsePage() {
       </div>
 
       {/* Results */}
-      {isLoading && <p className="text-sm">Loading tasks…</p>}
+      {isLoading && (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      )}
       {error && (
         <p className="text-sm text-red-600">{(error as Error).message}</p>
       )}

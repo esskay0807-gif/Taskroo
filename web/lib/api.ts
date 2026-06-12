@@ -516,3 +516,40 @@ export function getUserReviews(userId: string): Promise<Review[]> {
 export function getTaskReviews(taskId: string): Promise<Review[]> {
   return apiFetch<Review[]>(`/v1/tasks/${taskId}/reviews`);
 }
+
+// --- Notifications ---
+
+export type NotificationType =
+  | "offer_received"
+  | "offer_accepted"
+  | "new_message"
+  | "task_completed";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  payload: Record<string, unknown>;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationListResponse {
+  items: Notification[];
+  unread_count: number;
+}
+
+export function getNotifications(
+  token: string | null,
+): Promise<NotificationListResponse> {
+  return apiFetch<NotificationListResponse>("/v1/notifications", { token });
+}
+
+export function markNotificationRead(
+  token: string | null,
+  id: string,
+): Promise<Notification> {
+  return apiFetch<Notification>(`/v1/notifications/${id}/read`, {
+    token,
+    init: { method: "POST" },
+  });
+}

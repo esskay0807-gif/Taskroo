@@ -8,6 +8,7 @@ import { getMyOffers, getMyTasks, withdrawOffer } from "@/lib/api";
 import { formatBudget, formatInr } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   return (
@@ -60,7 +61,7 @@ function DashboardContent() {
     <div className="space-y-10">
       <section>
         <h2 className="mb-3 text-lg font-semibold">My Tasks</h2>
-        {tasks.isLoading && <p className="text-sm">Loading…</p>}
+        {tasks.isLoading && <Skeleton className="h-16 w-full" />}
         {tasks.data && tasks.data.length === 0 && (
           <p className="text-sm text-muted-foreground">
             You haven&apos;t posted any tasks yet.{" "}
@@ -95,7 +96,7 @@ function DashboardContent() {
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">My Jobs &amp; Offers</h2>
-        {offers.isLoading && <p className="text-sm">Loading…</p>}
+        {offers.isLoading && <Skeleton className="h-16 w-full" />}
         {offers.data && offers.data.length === 0 && (
           <p className="text-sm text-muted-foreground">
             You haven&apos;t made any offers yet.{" "}

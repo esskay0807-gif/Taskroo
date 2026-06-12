@@ -48,6 +48,14 @@ class Settings(BaseSettings):
     # Platform service fee percent, deducted from the agreed amount at release.
     service_fee_percent: int = 15
 
+    # Resend transactional email. Leave RESEND_API_KEY blank to log emails to the
+    # console instead of sending (dev fallback).
+    resend_api_key: str = ""
+    resend_from: str = "TaskMarket <onboarding@resend.dev>"
+
+    # Basic in-memory write rate limit (requests per identity per minute).
+    rate_limit_per_minute: int = 120
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
@@ -64,6 +72,10 @@ class Settings(BaseSettings):
     @property
     def razorpay_configured(self) -> bool:
         return bool(self.razorpay_key_id and self.razorpay_key_secret)
+
+    @property
+    def resend_configured(self) -> bool:
+        return bool(self.resend_api_key)
 
 
 @lru_cache

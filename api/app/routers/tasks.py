@@ -6,10 +6,20 @@ from sqlalchemy.orm import Session
 from app.auth.clerk import CurrentUser, get_current_user
 from app.config import Settings, get_settings
 from app.db import get_db
-from app.models.enums import LocationType, PaymentStatus, TaskStatus
+from app.models.enums import (
+    LocationType,
+    NotificationType,
+    PaymentStatus,
+    TaskStatus,
+)
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskListResponse, TaskOut, TaskUpdate
-from app.services import payment_service, stats_service, task_service
+from app.services import (
+    notification_service,
+    payment_service,
+    stats_service,
+    task_service,
+)
 from app.services.task_service import TaskFilters
 from app.services.user_service import upsert_user_from_principal
 
@@ -146,10 +156,22 @@ def complete_task(
             detail="Payment must be authorized (held) before completing",
         )
 
-    payment_service.capture_and_release(db, task, payment, settings)
+    payment = payment_service.capture_and_release(db, task, payment, settings)
     # Completing changes the relevant-task set for completion_rate.
     stats_service.recompute_user_id(db, task.poster_id)
     stats_service.recompute_user_id(db, task.assigned_tasker_id)
     db.commit()
+
+    notification_service.notify(
+        db,
+        settings,
+        task.assigned_tasker_id,
+        NotificationType.task_completed,
+        {
+            "task_id": str(task.id),
+            "task_title": task.title,
+            "net_amount": payment.net_amount,
+        },
+    )
     db.refresh(task)
     return TaskOut.model_validate(task)

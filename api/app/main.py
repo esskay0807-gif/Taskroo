@@ -2,11 +2,13 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.rate_limit import RateLimitMiddleware
 from app.routers import (
     categories,
     conversations,
     health,
     me,
+    notifications,
     offers,
     payments,
     reviews,
@@ -18,6 +20,10 @@ from app.routers import (
 settings = get_settings()
 
 app = FastAPI(title="TaskMarket API", version="0.1.0")
+
+# Rate limiting runs before CORS so 429s still carry CORS headers (middleware added
+# later wraps earlier ones).
+app.add_middleware(RateLimitMiddleware, limit_per_minute=settings.rate_limit_per_minute)
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,4 +45,5 @@ v1.include_router(offers.router)
 v1.include_router(conversations.router)
 v1.include_router(payments.router)
 v1.include_router(reviews.router)
+v1.include_router(notifications.router)
 app.include_router(v1)

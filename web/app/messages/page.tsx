@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getConversations } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MessagesPage() {
   return (
@@ -43,7 +44,15 @@ function ConversationList() {
     refetchInterval: 4000,
   });
 
-  if (isLoading) return <p className="text-sm">Loading…</p>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-16 w-full" />
+        ))}
+      </div>
+    );
+  }
   if (!data || data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
