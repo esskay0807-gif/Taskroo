@@ -161,13 +161,22 @@ export function PostTaskWizard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  // Pre-select a category from ?category=<slug> (deep links from the home page).
+  // Pre-select from ?category=<slug> (+ optional ?service=) — deep links from the
+  // home page and the search typeahead.
   useEffect(() => {
     if (!categories) return;
-    const slug = new URLSearchParams(window.location.search).get("category");
+    const sp = new URLSearchParams(window.location.search);
+    const slug = sp.get("category");
+    const service = sp.get("service");
     if (slug && !getValues("category_id")) {
       const match = categories.find((c) => c.slug === slug);
-      if (match) setValue("category_id", match.id);
+      if (match) {
+        setValue("category_id", match.id);
+        if (service) {
+          setValue("title", service);
+          setCustom(false);
+        }
+      }
     }
   }, [categories, getValues, setValue]);
 

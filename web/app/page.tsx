@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getCategories, type Category } from "@/lib/api";
 import { categoryIcon } from "@/lib/catalog";
+import { HeroSearch } from "@/components/hero-search";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -57,21 +58,8 @@ export default async function Home() {
             and pay securely once it&apos;s done.
           </p>
 
-          {/* Hero post box */}
-          <form
-            action="/post"
-            method="get"
-            className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border bg-card p-2 shadow-lg shadow-primary/5"
-          >
-            <input
-              name="title"
-              placeholder="In a few words, what do you need done?"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground"
-            />
-            <Button type="submit" size="lg" className="rounded-full px-7">
-              Post a task
-            </Button>
-          </form>
+          {/* Hero post box with typeahead suggestions */}
+          <HeroSearch />
 
           {/* Quick task prompts */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">

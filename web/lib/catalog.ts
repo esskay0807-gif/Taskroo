@@ -22,6 +22,22 @@ export function categoryIcon(slug: string): string {
   return CATEGORY_ICONS[slug] ?? "✅";
 }
 
+// Display names for the seeded categories (used by the search typeahead).
+export const CATEGORY_NAMES: Record<string, string> = {
+  cleaning: "Cleaning",
+  handyman: "Handyman",
+  "furniture-assembly": "Furniture Assembly",
+  "moving-delivery": "Moving & Delivery",
+  gardening: "Gardening",
+  painting: "Painting",
+  electrical: "Electrical",
+  plumbing: "Plumbing",
+  "appliance-repair": "Appliance Repair",
+  tutoring: "Tutoring",
+  photography: "Photography",
+  "web-design": "Web & Design",
+};
+
 export const SERVICES: Record<string, string[]> = {
   cleaning: [
     "Apartment deep clean",
@@ -123,6 +139,36 @@ export const SERVICES: Record<string, string[]> = {
 
 export function servicesFor(slug: string): string[] {
   return SERVICES[slug] ?? [];
+}
+
+export interface ServiceMatch {
+  service: string;
+  slug: string;
+  category: string;
+}
+
+const ALL_SERVICES: ServiceMatch[] = Object.entries(SERVICES).flatMap(
+  ([slug, list]) =>
+    list.map((service) => ({
+      service,
+      slug,
+      category: CATEGORY_NAMES[slug] ?? slug,
+    })),
+);
+
+/** Typeahead over all services (and their category). Prefix matches rank first. */
+export function searchServices(query: string, limit = 8): ServiceMatch[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const starts: ServiceMatch[] = [];
+  const contains: ServiceMatch[] = [];
+  for (const m of ALL_SERVICES) {
+    const t = m.service.toLowerCase();
+    if (t.startsWith(q)) starts.push(m);
+    else if (t.includes(q) || m.category.toLowerCase().includes(q))
+      contains.push(m);
+  }
+  return [...starts, ...contains].slice(0, limit);
 }
 
 /* --- Per-service / per-category detail prompts (TaskRabbit-style) --- */
