@@ -8,9 +8,9 @@ import { TopBar } from "@/components/top-bar";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "TaskMarket — post a task, get it done",
+  title: "Taskroo — post a task, get it done",
   description:
-    "A two-sided task marketplace. Post a task, receive offers from trusted taskers, and pay securely.",
+    "Taskroo is a task marketplace. Post a task, receive offers from trusted taskers, chat, and pay securely.",
 };
 
 export default function RootLayout({

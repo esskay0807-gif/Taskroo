@@ -24,7 +24,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-xl">Profile settings</CardTitle>
           <CardDescription>
-            Edit your public profile and choose how you use TaskMarket.
+            Edit your public profile and choose how you use Taskroo.
           </CardDescription>
         </CardHeader>
         <CardContent>

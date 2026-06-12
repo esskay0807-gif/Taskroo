@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@/lib/auth";
 
+import { Logo } from "@/components/logo";
 import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 
@@ -10,13 +11,8 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            T
-          </span>
-          <span className="text-lg font-bold tracking-tight">
-            Task<span className="text-primary">Market</span>
-          </span>
+        <Link href="/" className="flex items-center" aria-label="Taskroo home">
+          <Logo className="h-8 text-foreground" />
         </Link>
 
         <nav className="flex items-center gap-1 text-sm font-medium">

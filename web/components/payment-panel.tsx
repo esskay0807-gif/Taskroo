@@ -103,7 +103,7 @@ export function PaymentPanel({
           order_id: res.order_id,
           amount: res.amount_paise,
           currency: res.currency,
-          name: "TaskMarket",
+          name: "Taskroo",
           description: "Authorize task payment",
           handler: async (resp: any) => {
             try {
