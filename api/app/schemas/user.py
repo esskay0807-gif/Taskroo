@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.category import CategoryOut
+from app.schemas.tasker_service import TaskerServiceOut
 
 
 class UserOut(BaseModel):
@@ -61,6 +62,7 @@ class PublicUserOut(BaseModel):
 
     is_available: bool
     categories: list[CategoryOut]
+    services: list[TaskerServiceOut] = []
 
     created_at: datetime
 

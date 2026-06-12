@@ -80,8 +80,11 @@ def cancel_task(db: Session, task: Task) -> Task:
 
 
 def _apply_filters(stmt, filters: TaskFilters):
-    # Browse only surfaces open tasks.
-    stmt = stmt.where(Task.status == TaskStatus.open)
+    # Browse only surfaces open, publicly-posted tasks (not direct service requests).
+    stmt = stmt.where(
+        Task.status == TaskStatus.open,
+        Task.is_direct_request.is_(False),
+    )
 
     if filters.category:
         try:

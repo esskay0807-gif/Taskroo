@@ -17,10 +17,16 @@ export function TopBar() {
 
         <nav className="flex items-center gap-1 text-sm font-medium">
           <Link
+            href="/taskers"
+            className="rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Find taskers
+          </Link>
+          <Link
             href="/browse"
             className="rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            Browse
+            Browse tasks
           </Link>
           <SignedIn>
             <Link

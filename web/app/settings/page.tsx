@@ -1,6 +1,7 @@
 import { SignedIn, SignedOut, SignInButton } from "@/lib/auth";
 
 import { ProfileForm } from "@/components/profile-form";
+import { ServicesManager } from "@/components/services-manager";
 import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
@@ -14,7 +15,10 @@ export default function SettingsPage() {
       </div>
 
       <SignedIn>
-        <ProfileForm />
+        <div className="space-y-6">
+          <ProfileForm />
+          <ServicesManager />
+        </div>
       </SignedIn>
       <SignedOut>
         <div className="rounded-2xl border bg-card p-10 text-center shadow-sm">

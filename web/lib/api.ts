@@ -41,6 +41,7 @@ export async function apiFetch<T>(
     throw new ApiError(res.status, detail);
   }
 
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
@@ -84,6 +85,7 @@ export interface PublicUser {
   completion_rate: number;
   is_available: boolean;
   categories: Category[];
+  services: TaskerService[];
   created_at: string;
 }
 
@@ -638,5 +640,121 @@ export function declineInvite(
   return apiFetch<Invite>(`/v1/invites/${inviteId}/decline`, {
     token,
     init: { method: "POST" },
+  });
+}
+
+// --- Tasker services (fixed-price listings) & directory ---
+
+export interface TaskerService {
+  id: string;
+  category: Category;
+  title: string;
+  price: number;
+  description: string | null;
+  is_active: boolean;
+}
+
+export interface TaskerServiceInput {
+  category_id: string;
+  title: string;
+  price: number;
+  description?: string | null;
+}
+
+export interface TaskerServiceUpdateInput {
+  category_id?: string;
+  title?: string;
+  price?: number;
+  description?: string | null;
+  is_active?: boolean;
+}
+
+export interface TaskerDirectoryItem {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  rating_avg: number;
+  rating_count: number;
+  completion_rate: number;
+  services: TaskerService[];
+}
+
+export interface TaskerDirectoryResponse {
+  items: TaskerDirectoryItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface TaskerDirectoryFilters {
+  category?: string;
+  city?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ServiceRequestInput {
+  location_type?: LocationType;
+  city?: string | null;
+  address?: string | null;
+  note?: string | null;
+}
+
+export function getTaskerDirectory(
+  filters: TaskerDirectoryFilters = {},
+): Promise<TaskerDirectoryResponse> {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== null && v !== "") params.set(k, String(v));
+  }
+  const qs = params.toString();
+  return apiFetch<TaskerDirectoryResponse>(`/v1/taskers${qs ? `?${qs}` : ""}`);
+}
+
+export function myServices(token: string | null): Promise<TaskerService[]> {
+  return apiFetch<TaskerService[]>("/v1/me/services", { token });
+}
+
+export function createService(
+  token: string | null,
+  input: TaskerServiceInput,
+): Promise<TaskerService> {
+  return apiFetch<TaskerService>("/v1/me/services", {
+    token,
+    init: { method: "POST", body: JSON.stringify(input) },
+  });
+}
+
+export function updateService(
+  token: string | null,
+  id: string,
+  input: TaskerServiceUpdateInput,
+): Promise<TaskerService> {
+  return apiFetch<TaskerService>(`/v1/me/services/${id}`, {
+    token,
+    init: { method: "PATCH", body: JSON.stringify(input) },
+  });
+}
+
+export function deleteService(
+  token: string | null,
+  id: string,
+): Promise<void> {
+  return apiFetch<void>(`/v1/me/services/${id}`, {
+    token,
+    init: { method: "DELETE" },
+  });
+}
+
+export function requestService(
+  token: string | null,
+  serviceId: string,
+  input: ServiceRequestInput,
+): Promise<Task> {
+  return apiFetch<Task>(`/v1/tasker-services/${serviceId}/request`, {
+    token,
+    init: { method: "POST", body: JSON.stringify(input) },
   });
 }

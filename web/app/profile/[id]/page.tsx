@@ -8,6 +8,7 @@ import {
   type Review,
 } from "@/lib/api";
 import { ReviewList } from "@/components/review-list";
+import { RequestService } from "@/components/request-service";
 import { Stars } from "@/components/star-rating";
 
 export const dynamic = "force-dynamic";
@@ -153,6 +154,36 @@ export default async function ProfilePage({
                   >
                     {c.name}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Services for hire */}
+          {user.services.length > 0 && (
+            <div className="mt-6">
+              <p className="mb-2 text-sm font-medium">Services</p>
+              <div className="space-y-2">
+                {user.services.map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex items-start justify-between gap-3 rounded-xl border p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium">{s.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {s.category.name}
+                      </p>
+                      {s.description && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {s.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="shrink-0">
+                      <RequestService service={s} />
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

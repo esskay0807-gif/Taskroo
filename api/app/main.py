@@ -13,6 +13,7 @@ from app.routers import (
     offers,
     payments,
     reviews,
+    taskers,
     tasks,
     uploads,
     users,
@@ -48,4 +49,5 @@ v1.include_router(payments.router)
 v1.include_router(reviews.router)
 v1.include_router(notifications.router)
 v1.include_router(invites.router)
+v1.include_router(taskers.router)
 app.include_router(v1)

@@ -1,12 +1,14 @@
 import uuid
 
 from sqlalchemy import (
+    Boolean,
     Enum as SAEnum,
     Float,
     ForeignKey,
     Integer,
     String,
     Text,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -51,6 +53,12 @@ class Task(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     budget_min: Mapped[int] = mapped_column(Integer, nullable=False)
     budget_max: Mapped[int] = mapped_column(Integer, nullable=False)
     currency: Mapped[str] = mapped_column(String, nullable=False, default="INR")
+
+    # True for a direct fixed-price service request to one tasker — kept off the
+    # public browse board.
+    is_direct_request: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
 
     # Assignment (set when the poster accepts an offer — M3).
     assigned_tasker_id: Mapped[uuid.UUID | None] = mapped_column(

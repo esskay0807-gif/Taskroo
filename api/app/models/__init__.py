@@ -6,6 +6,7 @@ from app.models.offer import Offer
 from app.models.payment import Payment
 from app.models.review import Review, ReviewPhoto
 from app.models.task import Task, TaskPhoto
+from app.models.tasker_service import TaskerService
 from app.models.user import User
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "ReviewPhoto",
     "Notification",
     "TaskInvite",
+    "TaskerService",
 ]

@@ -78,7 +78,11 @@ export default async function Home() {
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">
-            Looking for work instead?{" "}
+            Prefer to hire directly?{" "}
+            <Link href="/taskers" className="font-medium text-primary hover:underline">
+              Find local taskers →
+            </Link>
+            {"  ·  "}
             <Link href="/browse" className="font-medium text-primary hover:underline">
               Browse open tasks →
             </Link>
