@@ -15,7 +15,8 @@ import {
   type TaskCreateInput,
 } from "@/lib/api";
 import { categoryIcon, promptsFor, servicesFor } from "@/lib/catalog";
-import { formatBudget } from "@/lib/format";
+import { formatBudget, formatInr } from "@/lib/format";
+import { suggestBudget } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,6 +147,19 @@ export function PostTaskWizard() {
     selectedCategory && (title.trim() !== "" || custom)
       ? promptsFor(selectedCategory.slug, title)
       : [];
+  const suggestion = selectedCategory
+    ? suggestBudget(selectedCategory.slug, answers)
+    : null;
+
+  // When the poster reaches the budget step, pre-fill it from the suggestion (once).
+  useEffect(() => {
+    if (step !== 2 || !suggestion) return;
+    if (getValues("budget_min") === "" && getValues("budget_max") === "") {
+      setValue("budget_min", String(suggestion.min));
+      setValue("budget_max", String(suggestion.max));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // Pre-select a category from ?category=<slug> (deep links from the home page).
   useEffect(() => {
@@ -471,6 +485,33 @@ export function PostTaskWizard() {
 
       {step === 2 && (
         <div className="space-y-4">
+          {suggestion && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-accent/50 p-4">
+              <div className="text-sm">
+                <p className="font-medium">💡 Suggested budget</p>
+                <p className="text-muted-foreground">
+                  {formatInr(suggestion.min)} – {formatInr(suggestion.max)} based
+                  on your answers
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => {
+                  setValue("budget_min", String(suggestion.min), {
+                    shouldValidate: true,
+                  });
+                  setValue("budget_max", String(suggestion.max), {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                Use this
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="budget_min">Min budget (₹)</Label>
