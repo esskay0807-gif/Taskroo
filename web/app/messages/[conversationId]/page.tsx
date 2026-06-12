@@ -11,28 +11,30 @@ export default function ConversationPage() {
   const params = useParams<{ conversationId: string }>();
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-6">
-        <Link
-          href="/messages"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Messages
-        </Link>
+    <main className="mx-auto max-w-2xl px-6 py-8">
+      <Link
+        href="/messages"
+        className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+      >
+        ← Messages
+      </Link>
+
+      <div className="mt-4">
+        <SignedOut>
+          <div className="rounded-2xl border bg-card p-10 text-center shadow-sm">
+            <p className="text-sm text-muted-foreground">
+              Sign in to view this conversation.
+            </p>
+            <SignInButton mode="modal">
+              <Button className="mt-4 rounded-full px-6">Sign in</Button>
+            </SignInButton>
+          </div>
+        </SignedOut>
+
+        <SignedIn>
+          <MessageThread conversationId={params.conversationId} />
+        </SignedIn>
       </div>
-
-      <SignedOut>
-        <div className="space-y-3 text-sm text-muted-foreground">
-          <p>Sign in to view this conversation.</p>
-          <SignInButton mode="modal">
-            <Button>Sign in</Button>
-          </SignInButton>
-        </div>
-      </SignedOut>
-
-      <SignedIn>
-        <MessageThread conversationId={params.conversationId} />
-      </SignedIn>
     </main>
   );
 }
