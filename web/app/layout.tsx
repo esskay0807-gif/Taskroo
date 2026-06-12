@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { Providers } from "./providers";
 import { TopBar } from "@/components/top-bar";
 
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
 export const metadata: Metadata = {
-  title: "TaskMarket",
-  description: "A two-sided task marketplace.",
+  title: "TaskMarket — post a task, get it done",
+  description:
+    "A two-sided task marketplace. Post a task, receive offers from trusted taskers, and pay securely.",
 };
 
 export default function RootLayout({
@@ -16,8 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en">
-        <body className="antialiased">
+      <html lang="en" className={inter.variable}>
+        <body className="min-h-screen bg-background font-sans antialiased">
           <Providers>
             <TopBar />
             {children}

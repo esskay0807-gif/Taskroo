@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,7 +15,16 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BrowsePage() {
-  const [filters, setFilters] = useState<TaskFilters>({ sort: "newest" });
+  // Seed q / category from the URL (e.g. links from the home hero & category tiles).
+  const [filters, setFilters] = useState<TaskFilters>(() => {
+    if (typeof window === "undefined") return { sort: "newest" };
+    const sp = new URLSearchParams(window.location.search);
+    return {
+      sort: "newest",
+      q: sp.get("q") ?? undefined,
+      category: sp.get("category") ?? undefined,
+    };
+  });
 
   const update = (patch: Partial<TaskFilters>) =>
     setFilters((f) => ({ ...f, ...patch }));
@@ -32,20 +40,16 @@ export default function BrowsePage() {
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-6 flex items-center justify-between">
-        <Link href="/" className="text-sm text-muted-foreground hover:underline">
-          ← Home
-        </Link>
-        <Link href="/post" className="text-sm font-medium hover:underline">
-          Post a task →
-        </Link>
+    <main className="mx-auto max-w-3xl px-6 py-10">
+      <div className="mb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight">Browse tasks</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Find work near you and send an offer.
+        </p>
       </div>
 
-      <h1 className="mb-6 text-2xl font-bold">Browse tasks</h1>
-
       {/* Filters */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mb-8 grid grid-cols-1 gap-4 rounded-xl border bg-card p-5 shadow-sm sm:grid-cols-2">
         <div className="space-y-1 sm:col-span-2">
           <Label htmlFor="q">Search</Label>
           <Input
