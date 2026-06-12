@@ -43,13 +43,18 @@ def _extract_email(claims: dict) -> str | None:
 
 def get_current_user(
     authorization: str | None = Header(default=None),
+    x_dev_user: str | None = Header(default=None),
     settings: Settings = Depends(get_settings),
 ) -> CurrentUser:
     if settings.dev_auth_bypass:
+        # Optional X-Dev-User header lets local testing simulate multiple identities
+        # (e.g. a poster vs. a tasker). Defaults to "dev_user".
+        dev_id = (x_dev_user or "dev_user").strip() or "dev_user"
+        email = f"{dev_id}@taskmarket.test"
         return CurrentUser(
-            clerk_id="dev_user",
-            email="dev@taskmarket.test",
-            claims={"sub": "dev_user", "email": "dev@taskmarket.test", "dev": True},
+            clerk_id=dev_id,
+            email=email,
+            claims={"sub": dev_id, "email": email, "dev": True},
         )
 
     if not authorization or not authorization.lower().startswith("bearer "):

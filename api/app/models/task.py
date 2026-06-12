@@ -52,13 +52,30 @@ class Task(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     budget_max: Mapped[int] = mapped_column(Integer, nullable=False)
     currency: Mapped[str] = mapped_column(String, nullable=False, default="INR")
 
-    poster: Mapped["User"] = relationship("User", lazy="joined")  # noqa: F821
+    # Assignment (set when the poster accepts an offer — M3).
+    assigned_tasker_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
+    agreed_amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    poster: Mapped["User"] = relationship(
+        "User", lazy="joined", foreign_keys=[poster_id]
+    )  # noqa: F821
+    assigned_tasker: Mapped["User | None"] = relationship(
+        "User", lazy="joined", foreign_keys=[assigned_tasker_id]
+    )  # noqa: F821
     category: Mapped["Category"] = relationship("Category", lazy="joined")  # noqa: F821
     photos: Mapped[list["TaskPhoto"]] = relationship(
         "TaskPhoto",
         back_populates="task",
         cascade="all, delete-orphan",
         order_by="TaskPhoto.sort_order",
+        lazy="selectin",
+    )
+    offers: Mapped[list["Offer"]] = relationship(  # noqa: F821
+        "Offer",
+        back_populates="task",
+        cascade="all, delete-orphan",
         lazy="selectin",
     )
 

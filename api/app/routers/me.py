@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.auth.clerk import CurrentUser, get_current_user
 from app.db import get_db
+from app.schemas.offer import MyOfferOut
+from app.schemas.task import TaskOut
 from app.schemas.user import UserOut, UserUpdate
+from app.services import offer_service, task_service
 from app.services.user_service import update_user, upsert_user_from_principal
 
 router = APIRouter(tags=["me"])
@@ -29,3 +32,25 @@ def update_me(
     user = upsert_user_from_principal(db, principal)
     user = update_user(db, user, payload)
     return UserOut.model_validate(user)
+
+
+@router.get("/me/tasks", response_model=list[TaskOut])
+def my_tasks(
+    principal: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[TaskOut]:
+    """Tasks I posted (all statuses, newest first)."""
+    me = upsert_user_from_principal(db, principal)
+    tasks = task_service.list_tasks_by_poster(db, me.id)
+    return [TaskOut.model_validate(t) for t in tasks]
+
+
+@router.get("/me/offers", response_model=list[MyOfferOut])
+def my_offers(
+    principal: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[MyOfferOut]:
+    """Offers I made as a tasker (newest first), each with its task."""
+    me = upsert_user_from_principal(db, principal)
+    offers = offer_service.list_my_offers(db, me.id)
+    return [MyOfferOut.model_validate(o) for o in offers]

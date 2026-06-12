@@ -37,8 +37,11 @@ export function MeCard() {
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-3">
         <Button asChild>
+          <Link href="/dashboard">Dashboard</Link>
+        </Button>
+        <Button asChild variant="outline">
           <Link href="/settings">Edit profile</Link>
         </Button>
         {data && (

@@ -202,6 +202,8 @@ export interface Task {
   budget_min: number;
   budget_max: number;
   currency: string;
+  assigned_tasker_id: string | null;
+  agreed_amount: number | null;
   category: Category;
   poster: Poster;
   photos: TaskPhoto[];
@@ -269,4 +271,73 @@ export function listTasks(filters: TaskFilters = {}): Promise<TaskListResponse> 
 
 export function getTask(id: string): Promise<Task> {
   return apiFetch<Task>(`/v1/tasks/${id}`);
+}
+
+// --- Offers ---
+
+export type OfferStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+
+export interface Offer {
+  id: string;
+  task_id: string;
+  amount: number;
+  message: string | null;
+  status: OfferStatus;
+  tasker: Poster;
+  created_at: string;
+}
+
+export interface MyOffer extends Offer {
+  task: Task;
+}
+
+export interface OfferCreateInput {
+  amount: number;
+  message?: string | null;
+}
+
+export function createOffer(
+  token: string | null,
+  taskId: string,
+  input: OfferCreateInput,
+): Promise<Offer> {
+  return apiFetch<Offer>(`/v1/tasks/${taskId}/offers`, {
+    token,
+    init: { method: "POST", body: JSON.stringify(input) },
+  });
+}
+
+export function getTaskOffers(
+  token: string | null,
+  taskId: string,
+): Promise<Offer[]> {
+  return apiFetch<Offer[]>(`/v1/tasks/${taskId}/offers`, { token });
+}
+
+export function acceptOffer(
+  token: string | null,
+  offerId: string,
+): Promise<Offer> {
+  return apiFetch<Offer>(`/v1/offers/${offerId}/accept`, {
+    token,
+    init: { method: "POST" },
+  });
+}
+
+export function withdrawOffer(
+  token: string | null,
+  offerId: string,
+): Promise<Offer> {
+  return apiFetch<Offer>(`/v1/offers/${offerId}/withdraw`, {
+    token,
+    init: { method: "POST" },
+  });
+}
+
+export function getMyTasks(token: string | null): Promise<Task[]> {
+  return apiFetch<Task[]>("/v1/me/tasks", { token });
+}
+
+export function getMyOffers(token: string | null): Promise<MyOffer[]> {
+  return apiFetch<MyOffer[]>("/v1/me/offers", { token });
 }

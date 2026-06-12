@@ -83,6 +83,8 @@ class TaskOut(BaseModel):
     budget_min: int
     budget_max: int
     currency: str
+    assigned_tasker_id: uuid.UUID | None
+    agreed_amount: int | None
     category: CategoryOut
     poster: PosterSummary
     photos: list[TaskPhotoOut]

@@ -51,6 +51,15 @@ def get_task(db: Session, task_id: uuid.UUID) -> Task | None:
     return db.get(Task, task_id)
 
 
+def list_tasks_by_poster(db: Session, poster_id: uuid.UUID) -> list[Task]:
+    stmt = (
+        select(Task)
+        .where(Task.poster_id == poster_id)
+        .order_by(Task.created_at.desc())
+    )
+    return list(db.execute(stmt).scalars().unique().all())
+
+
 def category_exists(db: Session, category_id: uuid.UUID) -> bool:
     return db.get(Category, category_id) is not None
 

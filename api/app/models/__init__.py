@@ -1,5 +1,6 @@
 from app.models.category import Category
+from app.models.offer import Offer
 from app.models.task import Task, TaskPhoto
 from app.models.user import User
 
-__all__ = ["User", "Category", "Task", "TaskPhoto"]
+__all__ = ["User", "Category", "Task", "TaskPhoto", "Offer"]

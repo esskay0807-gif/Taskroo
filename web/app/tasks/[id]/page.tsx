@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ApiError, getTask, type Task } from "@/lib/api";
-import { formatBudget } from "@/lib/format";
+import { formatBudget, formatInr } from "@/lib/format";
+import { TaskInteractions } from "@/components/task-interactions";
 import {
   Card,
   CardContent,
@@ -88,6 +89,12 @@ export default async function TaskDetailPage({
             </div>
           )}
 
+          {task.status === "assigned" && task.agreed_amount != null && (
+            <p className="rounded-lg border border-green-600 bg-green-50 p-3 text-sm text-green-800">
+              Assigned · agreed at {formatInr(task.agreed_amount)}
+            </p>
+          )}
+
           <div className="flex items-center gap-3 border-t pt-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -107,6 +114,14 @@ export default async function TaskDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      <div className="mt-6">
+        <TaskInteractions
+          taskId={task.id}
+          posterId={task.poster.id}
+          status={task.status}
+        />
+      </div>
     </main>
   );
 }
