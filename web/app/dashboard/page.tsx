@@ -5,9 +5,13 @@ import { useAuth, SignedIn, SignedOut, SignInButton } from "@/lib/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  acceptInvite,
+  declineInvite,
+  getMyInvites,
   getMyOffers,
   getMyTasks,
   withdrawOffer,
+  type MyInvite,
   type Task,
 } from "@/lib/api";
 import { formatBudget, formatInr } from "@/lib/format";
@@ -86,8 +90,34 @@ function DashboardContent() {
     queryFn: async () => getMyOffers(await getToken()),
   });
 
+  const invites = useQuery({
+    queryKey: ["my-invites"],
+    queryFn: async () => getMyInvites(await getToken()),
+  });
+
+  const pendingInvites = (invites.data ?? []).filter(
+    (i) => i.status === "pending",
+  );
+
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="space-y-6">
+      {pendingInvites.length > 0 && (
+        <section className="rounded-2xl border border-primary/30 bg-accent/30 p-6 shadow-sm">
+          <h2 className="mb-1 font-semibold">
+            Invites received ({pendingInvites.length})
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Posters invited you to these tasks. Accept to get the job.
+          </p>
+          <div className="space-y-2">
+            {pendingInvites.map((inv) => (
+              <InviteRow key={inv.id} invite={inv} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
       {/* My Tasks */}
       <section className="rounded-2xl border bg-card p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
@@ -149,6 +179,60 @@ function DashboardContent() {
           ))}
         </div>
       </section>
+      </div>
+    </div>
+  );
+}
+
+function InviteRow({ invite }: { invite: MyInvite }) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["my-invites"] });
+    queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
+  };
+  const accept = useMutation({
+    mutationFn: async () => acceptInvite(await getToken(), invite.id),
+    onSuccess: refresh,
+  });
+  const decline = useMutation({
+    mutationFn: async () => declineInvite(await getToken(), invite.id),
+    onSuccess: refresh,
+  });
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4">
+      <div className="min-w-0">
+        <Link
+          href={`/tasks/${invite.task.id}`}
+          className="block truncate font-medium hover:underline"
+        >
+          {invite.task.title}
+        </Link>
+        <p className="text-xs text-muted-foreground">
+          Budget up to {formatInr(invite.task.budget_max)}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="rounded-full"
+          onClick={() => decline.mutate()}
+          disabled={decline.isPending || accept.isPending}
+        >
+          Decline
+        </Button>
+        <Button
+          size="sm"
+          className="rounded-full"
+          onClick={() => accept.mutate()}
+          disabled={accept.isPending || decline.isPending}
+        >
+          {accept.isPending ? "Accepting…" : "Accept"}
+        </Button>
+      </div>
     </div>
   );
 }

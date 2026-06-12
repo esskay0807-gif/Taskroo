@@ -7,6 +7,7 @@ from app.routers import (
     categories,
     conversations,
     health,
+    invites,
     me,
     notifications,
     offers,
@@ -46,4 +47,5 @@ v1.include_router(conversations.router)
 v1.include_router(payments.router)
 v1.include_router(reviews.router)
 v1.include_router(notifications.router)
+v1.include_router(invites.router)
 app.include_router(v1)

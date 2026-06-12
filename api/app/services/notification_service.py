@@ -25,6 +25,12 @@ def _email_content(ntype: NotificationType, payload: dict) -> tuple[str, str]:
     elif ntype == NotificationType.task_completed:
         subject = f"Task completed — “{title}”"
         body = f"“{title}” was marked complete. ₹{payload.get('net_amount')} was released to you."
+    elif ntype == NotificationType.invite_received:
+        subject = f"You're invited to do “{title}”"
+        body = f"A poster invited you to do “{title}”. Accept it to get the job."
+    elif ntype == NotificationType.invite_accepted:
+        subject = f"Your invite was accepted — “{title}”"
+        body = f"A tasker accepted your invitation for “{title}”."
     else:
         subject = "TaskMarket notification"
         body = "You have a new notification."

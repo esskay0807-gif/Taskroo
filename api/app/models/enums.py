@@ -35,8 +35,17 @@ class ReviewRole(StrEnum):
     of_poster = "of_poster"  # tasker reviewing the poster
 
 
+class InviteStatus(StrEnum):
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
+    cancelled = "cancelled"
+
+
 class NotificationType(StrEnum):
     offer_received = "offer_received"
     offer_accepted = "offer_accepted"
     new_message = "new_message"
     task_completed = "task_completed"
+    invite_received = "invite_received"
+    invite_accepted = "invite_accepted"

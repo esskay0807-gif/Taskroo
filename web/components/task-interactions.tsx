@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { formatInr } from "@/lib/format";
 import { PaymentPanel } from "@/components/payment-panel";
+import { RecommendedTaskers } from "@/components/recommended-taskers";
 import { Stars } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,7 @@ export function TaskInteractions({
             isPoster
           />
         )}
+        {status === "open" && <RecommendedTaskers taskId={taskId} />}
         <OffersList taskId={taskId} taskStatus={status} />
       </div>
     );

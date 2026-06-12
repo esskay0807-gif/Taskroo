@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.clerk import CurrentUser
+from app.models.category import Category
 from app.models.user import User
 from app.schemas.user import UserUpdate
 
@@ -33,11 +34,26 @@ def upsert_user_from_principal(db: Session, principal: CurrentUser) -> User:
     return user
 
 
+def set_tasker_categories(db: Session, user: User, ids: list[uuid.UUID]) -> None:
+    """Replace a tasker's skill set. Adding skills marks them a tasker."""
+    cats = (
+        list(db.execute(select(Category).where(Category.id.in_(ids))).scalars().all())
+        if ids
+        else []
+    )
+    user.categories = cats
+    if cats:
+        user.is_tasker = True
+
+
 def update_user(db: Session, user: User, payload: UserUpdate) -> User:
     """Apply the provided (set) profile fields to a user and persist."""
     changes = payload.model_dump(exclude_unset=True)
+    category_ids = changes.pop("category_ids", None)
     for field, value in changes.items():
         setattr(user, field, value)
+    if category_ids is not None:
+        set_tasker_categories(db, user, category_ids)
     db.commit()
     db.refresh(user)
     return user

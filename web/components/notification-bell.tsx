@@ -22,6 +22,10 @@ function describe(n: Notification): string {
       return `New message about “${title}”`;
     case "task_completed":
       return `“${title}” was completed`;
+    case "invite_received":
+      return `You're invited to do “${title}”`;
+    case "invite_accepted":
+      return `A tasker accepted your invite for “${title}”`;
     default:
       return "Notification";
   }
@@ -31,6 +35,7 @@ function targetHref(n: Notification): string {
   if (n.type === "new_message" && n.payload.conversation_id) {
     return `/messages/${n.payload.conversation_id}`;
   }
+  if (n.type === "invite_received") return "/dashboard";
   if (n.payload.task_id) return `/tasks/${n.payload.task_id}`;
   return "/dashboard";
 }

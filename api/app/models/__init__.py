@@ -1,5 +1,6 @@
 from app.models.category import Category
 from app.models.conversation import Conversation, Message
+from app.models.invite import TaskInvite
 from app.models.notification import Notification
 from app.models.offer import Offer
 from app.models.payment import Payment
@@ -19,4 +20,5 @@ __all__ = [
     "Review",
     "ReviewPhoto",
     "Notification",
+    "TaskInvite",
 ]

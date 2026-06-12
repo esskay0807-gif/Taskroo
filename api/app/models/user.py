@@ -1,8 +1,17 @@
-from sqlalchemy import Boolean, Float, Integer, String, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Table, text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.models.base import TimestampMixin, UUIDPrimaryKeyMixin
+
+# Skills a tasker offers (many-to-many between users and categories).
+tasker_categories = Table(
+    "tasker_categories",
+    Base.metadata,
+    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), primary_key=True),
+)
 
 
 class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -52,4 +61,12 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     completion_rate: Mapped[float] = mapped_column(
         Float, nullable=False, server_default=text("0")
+    )
+
+    # Tasker availability + skills (for recommendations / invites).
+    is_available: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    categories: Mapped[list["Category"]] = relationship(  # noqa: F821
+        "Category", secondary=tasker_categories, lazy="selectin", order_by="Category.name"
     )

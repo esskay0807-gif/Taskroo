@@ -1,46 +1,31 @@
-import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton } from "@/lib/auth";
 
 import { ProfileForm } from "@/components/profile-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default function SettingsPage() {
   return (
-    <main className="mx-auto max-w-xl px-6 py-12">
+    <main className="mx-auto max-w-2xl px-6 py-10">
       <div className="mb-6">
-        <Link href="/" className="text-sm text-muted-foreground hover:underline">
-          ← Home
-        </Link>
+        <h1 className="text-3xl font-extrabold tracking-tight">Settings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Edit your profile and choose how you use Taskroo.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Profile settings</CardTitle>
-          <CardDescription>
-            Edit your public profile and choose how you use Taskroo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SignedIn>
-            <ProfileForm />
-          </SignedIn>
-          <SignedOut>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>Sign in to edit your profile.</p>
-              <SignInButton mode="modal">
-                <Button>Sign in</Button>
-              </SignInButton>
-            </div>
-          </SignedOut>
-        </CardContent>
-      </Card>
+      <SignedIn>
+        <ProfileForm />
+      </SignedIn>
+      <SignedOut>
+        <div className="rounded-2xl border bg-card p-10 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">
+            Sign in to edit your profile.
+          </p>
+          <SignInButton mode="modal">
+            <Button className="mt-4 rounded-full px-6">Sign in</Button>
+          </SignInButton>
+        </div>
+      </SignedOut>
     </main>
   );
 }

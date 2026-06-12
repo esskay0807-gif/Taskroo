@@ -63,6 +63,8 @@ export interface Me {
   rating_avg: number;
   rating_count: number;
   completion_rate: number;
+  is_available: boolean;
+  categories: Category[];
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +82,8 @@ export interface PublicUser {
   rating_avg: number;
   rating_count: number;
   completion_rate: number;
+  is_available: boolean;
+  categories: Category[];
   created_at: string;
 }
 
@@ -92,6 +96,8 @@ export interface ProfileUpdate {
   lng?: number | null;
   is_poster?: boolean;
   is_tasker?: boolean;
+  is_available?: boolean;
+  category_ids?: string[];
 }
 
 export interface PresignResponse {
@@ -523,7 +529,9 @@ export type NotificationType =
   | "offer_received"
   | "offer_accepted"
   | "new_message"
-  | "task_completed";
+  | "task_completed"
+  | "invite_received"
+  | "invite_accepted";
 
 export interface Notification {
   id: string;
@@ -549,6 +557,85 @@ export function markNotificationRead(
   id: string,
 ): Promise<Notification> {
   return apiFetch<Notification>(`/v1/notifications/${id}/read`, {
+    token,
+    init: { method: "POST" },
+  });
+}
+
+// --- Recommended taskers & invites ---
+
+export interface RecommendedTasker {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  rating_avg: number;
+  rating_count: number;
+  completion_rate: number;
+  categories: Category[];
+}
+
+export type InviteStatus = "pending" | "accepted" | "declined" | "cancelled";
+
+export interface Invite {
+  id: string;
+  task_id: string;
+  tasker: Poster;
+  status: InviteStatus;
+  created_at: string;
+}
+
+export interface MyInvite extends Invite {
+  task: Task;
+}
+
+export function getRecommendedTaskers(
+  token: string | null,
+  taskId: string,
+): Promise<RecommendedTasker[]> {
+  return apiFetch<RecommendedTasker[]>(
+    `/v1/tasks/${taskId}/recommended-taskers`,
+    { token },
+  );
+}
+
+export function sendInvites(
+  token: string | null,
+  taskId: string,
+  taskerIds: string[],
+): Promise<Invite[]> {
+  return apiFetch<Invite[]>(`/v1/tasks/${taskId}/invites`, {
+    token,
+    init: { method: "POST", body: JSON.stringify({ tasker_ids: taskerIds }) },
+  });
+}
+
+export function getTaskInvites(
+  token: string | null,
+  taskId: string,
+): Promise<Invite[]> {
+  return apiFetch<Invite[]>(`/v1/tasks/${taskId}/invites`, { token });
+}
+
+export function getMyInvites(token: string | null): Promise<MyInvite[]> {
+  return apiFetch<MyInvite[]>("/v1/me/invites", { token });
+}
+
+export function acceptInvite(
+  token: string | null,
+  inviteId: string,
+): Promise<Invite> {
+  return apiFetch<Invite>(`/v1/invites/${inviteId}/accept`, {
+    token,
+    init: { method: "POST" },
+  });
+}
+
+export function declineInvite(
+  token: string | null,
+  inviteId: string,
+): Promise<Invite> {
+  return apiFetch<Invite>(`/v1/invites/${inviteId}/decline`, {
     token,
     init: { method: "POST" },
   });

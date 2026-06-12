@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.category import CategoryOut
+
 
 class UserOut(BaseModel):
     """Private representation of the authenticated user (GET/PATCH /v1/me)."""
@@ -30,6 +32,9 @@ class UserOut(BaseModel):
     rating_count: int
     completion_rate: float
 
+    is_available: bool
+    categories: list[CategoryOut]
+
     created_at: datetime
     updated_at: datetime
 
@@ -54,6 +59,9 @@ class PublicUserOut(BaseModel):
     rating_count: int
     completion_rate: float
 
+    is_available: bool
+    categories: list[CategoryOut]
+
     created_at: datetime
 
 
@@ -74,6 +82,9 @@ class UserUpdate(BaseModel):
     lng: float | None = Field(default=None, ge=-180, le=180)
     is_poster: bool | None = None
     is_tasker: bool | None = None
+    is_available: bool | None = None
+    # Tasker skills — when provided, replaces the full set.
+    category_ids: list[uuid.UUID] | None = None
 
 
 class PresignRequest(BaseModel):

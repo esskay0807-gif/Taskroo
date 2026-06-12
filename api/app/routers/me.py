@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.auth.clerk import CurrentUser, get_current_user
 from app.db import get_db
+from app.schemas.invite import MyInviteOut
 from app.schemas.offer import MyOfferOut
 from app.schemas.task import TaskOut
 from app.schemas.user import UserOut, UserUpdate
-from app.services import offer_service, task_service
+from app.services import invite_service, offer_service, task_service
 from app.services.user_service import update_user, upsert_user_from_principal
 
 router = APIRouter(tags=["me"])
@@ -54,3 +55,14 @@ def my_offers(
     me = upsert_user_from_principal(db, principal)
     offers = offer_service.list_my_offers(db, me.id)
     return [MyOfferOut.model_validate(o) for o in offers]
+
+
+@router.get("/me/invites", response_model=list[MyInviteOut])
+def my_invites(
+    principal: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[MyInviteOut]:
+    """Invites I received as a tasker (newest first), each with its task."""
+    me = upsert_user_from_principal(db, principal)
+    invites = invite_service.list_my_invites(db, me.id)
+    return [MyInviteOut.model_validate(i) for i in invites]
