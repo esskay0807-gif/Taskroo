@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@/lib/auth";
 
 import { MessageThread } from "@/components/message-thread";
 import { Button } from "@/components/ui/button";

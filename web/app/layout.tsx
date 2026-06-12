@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth";
 import { Providers } from "./providers";
 import { TopBar } from "@/components/top-bar";
 
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <AuthProvider>
       <html lang="en">
         <body className="antialiased">
           <Providers>
@@ -24,6 +24,6 @@ export default function RootLayout({
           </Providers>
         </body>
       </html>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }

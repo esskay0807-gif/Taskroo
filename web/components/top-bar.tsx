@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@/lib/auth";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";

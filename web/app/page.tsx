@@ -5,7 +5,7 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-} from "@clerk/nextjs";
+} from "@/lib/auth";
 import { MeCard } from "@/components/me-card";
 import { Button } from "@/components/ui/button";
 

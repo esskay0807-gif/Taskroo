@@ -1,7 +1,7 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import { SignInButton } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
+import { SignInButton } from "@/lib/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 

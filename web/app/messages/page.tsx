@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { useAuth, SignedIn, SignedOut, SignInButton } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 
 import { getConversations } from "@/lib/api";
