@@ -120,7 +120,7 @@ export function getUser(id: string): Promise<PublicUser> {
   return apiFetch<PublicUser>(`/v1/users/${id}`);
 }
 
-export type UploadKind = "avatar" | "task";
+export type UploadKind = "avatar" | "task" | "review";
 
 export function presignUpload(
   token: string | null,
@@ -468,4 +468,51 @@ export function completeTask(
     token,
     init: { method: "POST" },
   });
+}
+
+// --- Reviews ---
+
+export type ReviewRole = "of_tasker" | "of_poster";
+
+export interface ReviewPhoto {
+  id: string;
+  url: string;
+  sort_order: number;
+}
+
+export interface Review {
+  id: string;
+  task_id: string;
+  reviewer: Poster;
+  reviewee_id: string;
+  role: ReviewRole;
+  rating: number;
+  comment: string | null;
+  photos: ReviewPhoto[];
+  created_at: string;
+}
+
+export interface ReviewCreateInput {
+  rating: number;
+  comment?: string | null;
+  photo_urls?: string[];
+}
+
+export function createReview(
+  token: string | null,
+  taskId: string,
+  input: ReviewCreateInput,
+): Promise<Review> {
+  return apiFetch<Review>(`/v1/tasks/${taskId}/reviews`, {
+    token,
+    init: { method: "POST", body: JSON.stringify(input) },
+  });
+}
+
+export function getUserReviews(userId: string): Promise<Review[]> {
+  return apiFetch<Review[]>(`/v1/users/${userId}/reviews`);
+}
+
+export function getTaskReviews(taskId: string): Promise<Review[]> {
+  return apiFetch<Review[]>(`/v1/tasks/${taskId}/reviews`);
 }

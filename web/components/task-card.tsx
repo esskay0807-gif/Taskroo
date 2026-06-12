@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { Task } from "@/lib/api";
 import { formatBudget } from "@/lib/format";
+import { Stars } from "@/components/star-rating";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function TaskCard({ task }: { task: Task }) {
@@ -31,6 +32,14 @@ export function TaskCard({ task }: { task: Task }) {
             <p className="text-xs text-muted-foreground">
               {task.poster.name ?? "Someone"}
             </p>
+            {task.poster.rating_count > 0 && (
+              <p className="text-xs">
+                <Stars value={task.poster.rating_avg} className="text-[10px]" />{" "}
+                <span className="text-muted-foreground">
+                  ({task.poster.rating_count})
+                </span>
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

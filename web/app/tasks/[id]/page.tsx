@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ApiError, getTask, type Task } from "@/lib/api";
 import { formatBudget, formatInr } from "@/lib/format";
 import { TaskInteractions } from "@/components/task-interactions";
+import { TaskReviews } from "@/components/task-reviews";
 import {
   Card,
   CardContent,
@@ -124,6 +125,13 @@ export default async function TaskDetailPage({
           status={task.status}
         />
       </div>
+
+      <TaskReviews
+        taskId={task.id}
+        posterId={task.poster.id}
+        assignedTaskerId={task.assigned_tasker_id}
+        status={task.status}
+      />
     </main>
   );
 }

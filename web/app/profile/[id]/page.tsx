@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ApiError, getUser, type PublicUser } from "@/lib/api";
+import {
+  ApiError,
+  getUser,
+  getUserReviews,
+  type PublicUser,
+  type Review,
+} from "@/lib/api";
+import { ReviewList } from "@/components/review-list";
+import { Stars } from "@/components/star-rating";
 import {
   Card,
   CardContent,
@@ -36,12 +44,23 @@ async function fetchUser(id: string): Promise<PublicUser | null> {
   }
 }
 
+async function fetchReviews(id: string): Promise<Review[]> {
+  try {
+    return await getUserReviews(id);
+  } catch {
+    return [];
+  }
+}
+
 export default async function ProfilePage({
   params,
 }: {
   params: { id: string };
 }) {
-  const user = await fetchUser(params.id);
+  const [user, reviews] = await Promise.all([
+    fetchUser(params.id),
+    fetchReviews(params.id),
+  ]);
   if (!user) notFound();
 
   return (
@@ -78,12 +97,15 @@ export default async function ProfilePage({
         <CardContent className="space-y-6">
           {user.bio && <p className="text-sm">{user.bio}</p>}
 
-          {/* Trust signals — placeholders until M6 computes real ratings. */}
+          {/* Trust signals (computed from reviews + task history). */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-lg font-semibold">
                 {user.rating_count > 0 ? user.rating_avg.toFixed(1) : "—"}
               </p>
+              {user.rating_count > 0 && (
+                <Stars value={user.rating_avg} className="text-sm" />
+              )}
               <p className="text-xs text-muted-foreground">Rating</p>
             </div>
             <div>
@@ -109,6 +131,13 @@ export default async function ProfilePage({
           </div>
         </CardContent>
       </Card>
+
+      <section className="mt-8 space-y-4">
+        <h2 className="text-lg font-semibold">
+          Reviews{reviews.length > 0 && ` (${reviews.length})`}
+        </h2>
+        <ReviewList reviews={reviews} />
+      </section>
     </main>
   );
 }

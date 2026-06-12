@@ -9,6 +9,7 @@ from app.routers import (
     me,
     offers,
     payments,
+    reviews,
     tasks,
     uploads,
     users,
@@ -37,4 +38,5 @@ v1.include_router(tasks.router)
 v1.include_router(offers.router)
 v1.include_router(conversations.router)
 v1.include_router(payments.router)
+v1.include_router(reviews.router)
 app.include_router(v1)

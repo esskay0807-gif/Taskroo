@@ -21,7 +21,7 @@ def _extension(filename: str) -> str:
 
 
 # Maps the upload "kind" to a key prefix / folder.
-_KIND_PREFIX = {"avatar": "avatars", "task": "tasks"}
+_KIND_PREFIX = {"avatar": "avatars", "task": "tasks", "review": "reviews"}
 
 
 def build_upload_key(kind: str, clerk_id: str, filename: str) -> str:

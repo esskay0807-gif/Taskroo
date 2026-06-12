@@ -28,3 +28,8 @@ class PaymentStatus(StrEnum):
     released = "released"  # captured and released to the tasker (fee deducted)
     refunded = "refunded"
     failed = "failed"
+
+
+class ReviewRole(StrEnum):
+    of_tasker = "of_tasker"  # poster reviewing the tasker
+    of_poster = "of_poster"  # tasker reviewing the poster

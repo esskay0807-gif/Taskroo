@@ -9,7 +9,7 @@ from app.db import get_db
 from app.models.enums import LocationType, PaymentStatus, TaskStatus
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskListResponse, TaskOut, TaskUpdate
-from app.services import payment_service, task_service
+from app.services import payment_service, stats_service, task_service
 from app.services.task_service import TaskFilters
 from app.services.user_service import upsert_user_from_principal
 
@@ -111,7 +111,12 @@ def cancel_task(
             status_code=status.HTTP_409_CONFLICT,
             detail="Task is already finished",
         )
+    assigned_tasker_id = task.assigned_tasker_id
     task = task_service.cancel_task(db, task)
+    # Cancelling changes the relevant-task set for completion_rate.
+    stats_service.recompute_user_id(db, task.poster_id)
+    stats_service.recompute_user_id(db, assigned_tasker_id)
+    db.commit()
     return TaskOut.model_validate(task)
 
 
@@ -142,5 +147,9 @@ def complete_task(
         )
 
     payment_service.capture_and_release(db, task, payment, settings)
+    # Completing changes the relevant-task set for completion_rate.
+    stats_service.recompute_user_id(db, task.poster_id)
+    stats_service.recompute_user_id(db, task.assigned_tasker_id)
+    db.commit()
     db.refresh(task)
     return TaskOut.model_validate(task)

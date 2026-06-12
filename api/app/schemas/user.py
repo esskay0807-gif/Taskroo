@@ -79,7 +79,7 @@ class UserUpdate(BaseModel):
 class PresignRequest(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     content_type: str = Field(min_length=1, max_length=128)
-    kind: Literal["avatar", "task"] = "avatar"
+    kind: Literal["avatar", "task", "review"] = "avatar"
 
 
 class PresignResponse(BaseModel):

@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { formatInr } from "@/lib/format";
 import { PaymentPanel } from "@/components/payment-panel";
+import { Stars } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,6 +212,14 @@ function OffersList({
         >
           <div className="min-w-0">
             <p className="font-medium">{offer.tasker.name ?? "A tasker"}</p>
+            {offer.tasker.rating_count > 0 && (
+              <p className="text-xs">
+                <Stars value={offer.tasker.rating_avg} className="text-[10px]" />{" "}
+                <span className="text-muted-foreground">
+                  ({offer.tasker.rating_count})
+                </span>
+              </p>
+            )}
             {offer.message && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {offer.message}
