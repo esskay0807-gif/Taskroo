@@ -119,6 +119,8 @@ export default async function TaskDetailPage({
         <TaskInteractions
           taskId={task.id}
           posterId={task.poster.id}
+          assignedTaskerId={task.assigned_tasker_id}
+          agreedAmount={task.agreed_amount}
           status={task.status}
         />
       </div>

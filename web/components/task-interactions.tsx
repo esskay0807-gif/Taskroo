@@ -14,6 +14,7 @@ import {
   type TaskStatus,
 } from "@/lib/api";
 import { formatInr } from "@/lib/format";
+import { PaymentPanel } from "@/components/payment-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,10 +30,14 @@ const STATUS_STYLES: Record<Offer["status"], string> = {
 export function TaskInteractions({
   taskId,
   posterId,
+  assignedTaskerId,
+  agreedAmount,
   status,
 }: {
   taskId: string;
   posterId: string;
+  assignedTaskerId: string | null;
+  agreedAmount: number | null;
   status: TaskStatus;
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -59,9 +64,34 @@ export function TaskInteractions({
   if (!me) return null;
 
   const isPoster = me.id === posterId;
+  const isAssignedTasker = assignedTaskerId != null && me.id === assignedTaskerId;
+  // Payment is relevant once a task is assigned (or completed) and an amount agreed.
+  const showPayment =
+    (status === "assigned" || status === "completed") && agreedAmount != null;
 
   if (isPoster) {
-    return <OffersList taskId={taskId} taskStatus={status} />;
+    return (
+      <div className="space-y-6">
+        {showPayment && (
+          <PaymentPanel
+            taskId={taskId}
+            agreedAmount={agreedAmount!}
+            isPoster
+          />
+        )}
+        <OffersList taskId={taskId} taskStatus={status} />
+      </div>
+    );
+  }
+
+  if (isAssignedTasker && showPayment) {
+    return (
+      <PaymentPanel
+        taskId={taskId}
+        agreedAmount={agreedAmount!}
+        isPoster={false}
+      />
+    );
   }
 
   if (status !== "open") {

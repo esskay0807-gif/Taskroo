@@ -390,3 +390,82 @@ export function sendMessage(
     init: { method: "POST", body: JSON.stringify({ body }) },
   });
 }
+
+// --- Payments ---
+
+export type PaymentStatus =
+  | "authorized"
+  | "held"
+  | "released"
+  | "refunded"
+  | "failed";
+
+export interface Payment {
+  id: string;
+  task_id: string;
+  payer_id: string;
+  payee_id: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  provider: string;
+  provider_order_id: string | null;
+  provider_payment_id: string | null;
+  fee_amount: number | null;
+  net_amount: number | null;
+  service_fee_percent: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CheckoutResponse {
+  payment: Payment;
+  key_id: string | null;
+  order_id: string | null;
+  amount_paise: number;
+  currency: string;
+  dev: boolean;
+}
+
+export interface VerifyInput {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+export function getTaskPayment(
+  token: string | null,
+  taskId: string,
+): Promise<Payment> {
+  return apiFetch<Payment>(`/v1/tasks/${taskId}/payment`, { token });
+}
+
+export function checkout(
+  token: string | null,
+  taskId: string,
+): Promise<CheckoutResponse> {
+  return apiFetch<CheckoutResponse>("/v1/payments/checkout", {
+    token,
+    init: { method: "POST", body: JSON.stringify({ task_id: taskId }) },
+  });
+}
+
+export function verifyPayment(
+  token: string | null,
+  body: VerifyInput,
+): Promise<Payment> {
+  return apiFetch<Payment>("/v1/payments/verify", {
+    token,
+    init: { method: "POST", body: JSON.stringify(body) },
+  });
+}
+
+export function completeTask(
+  token: string | null,
+  taskId: string,
+): Promise<Task> {
+  return apiFetch<Task>(`/v1/tasks/${taskId}/complete`, {
+    token,
+    init: { method: "POST" },
+  });
+}

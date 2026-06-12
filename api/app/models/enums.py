@@ -20,3 +20,11 @@ class OfferStatus(StrEnum):
     accepted = "accepted"
     rejected = "rejected"
     withdrawn = "withdrawn"
+
+
+class PaymentStatus(StrEnum):
+    authorized = "authorized"  # order created, awaiting customer authorization
+    held = "held"  # funds authorized and held in escrow
+    released = "released"  # captured and released to the tasker (fee deducted)
+    refunded = "refunded"
+    failed = "failed"

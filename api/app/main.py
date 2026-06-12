@@ -8,6 +8,7 @@ from app.routers import (
     health,
     me,
     offers,
+    payments,
     tasks,
     uploads,
     users,
@@ -35,4 +36,5 @@ v1.include_router(categories.router)
 v1.include_router(tasks.router)
 v1.include_router(offers.router)
 v1.include_router(conversations.router)
+v1.include_router(payments.router)
 app.include_router(v1)

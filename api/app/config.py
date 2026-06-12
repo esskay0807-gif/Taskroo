@@ -39,6 +39,15 @@ class Settings(BaseSettings):
     r2_bucket: str = ""
     r2_public_base_url: str = ""  # public base for objects, e.g. https://cdn.example.com
 
+    # Razorpay (TEST MODE). Leave key_id/key_secret blank to use the dev payment fallback
+    # (simulates authorize->held on checkout and capture->released on complete).
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_webhook_secret: str = ""
+
+    # Platform service fee percent, deducted from the agreed amount at release.
+    service_fee_percent: int = 15
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
@@ -51,6 +60,10 @@ class Settings(BaseSettings):
             and self.r2_secret_access_key
             and self.r2_bucket
         )
+
+    @property
+    def razorpay_configured(self) -> bool:
+        return bool(self.razorpay_key_id and self.razorpay_key_secret)
 
 
 @lru_cache

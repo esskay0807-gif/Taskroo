@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth.clerk import CurrentUser, get_current_user
+from app.config import Settings, get_settings
 from app.db import get_db
-from app.models.enums import LocationType, TaskStatus
+from app.models.enums import LocationType, PaymentStatus, TaskStatus
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskListResponse, TaskOut, TaskUpdate
-from app.services import task_service
+from app.services import payment_service, task_service
 from app.services.task_service import TaskFilters
 from app.services.user_service import upsert_user_from_principal
 
@@ -111,4 +112,35 @@ def cancel_task(
             detail="Task is already finished",
         )
     task = task_service.cancel_task(db, task)
+    return TaskOut.model_validate(task)
+
+
+@router.post("/tasks/{task_id}/complete", response_model=TaskOut)
+def complete_task(
+    task_id: uuid.UUID,
+    principal: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> TaskOut:
+    """Poster confirms completion → capture the held payment, deduct the service fee,
+    release to the tasker, and mark the task completed."""
+    me = upsert_user_from_principal(db, principal)
+    task = _get_task_or_404(db, task_id)
+    if task.poster_id != me.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your task")
+    if task.status != TaskStatus.assigned:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only an assigned task can be completed",
+        )
+
+    payment = payment_service.get_payment_by_task(db, task.id)
+    if payment is None or payment.status != PaymentStatus.held:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Payment must be authorized (held) before completing",
+        )
+
+    payment_service.capture_and_release(db, task, payment, settings)
+    db.refresh(task)
     return TaskOut.model_validate(task)
