@@ -10,7 +10,7 @@ from app.models.enums import OfferStatus, TaskStatus
 from app.models.offer import Offer
 from app.models.task import Task
 from app.schemas.offer import OfferCreate, OfferOut
-from app.services import offer_service, task_service
+from app.services import conversation_service, offer_service, task_service
 from app.services.user_service import upsert_user_from_principal
 
 router = APIRouter(tags=["offers"])
@@ -69,6 +69,9 @@ def create_offer(
             status_code=status.HTTP_409_CONFLICT,
             detail="You already have a pending offer on this task",
         )
+
+    # Open a conversation between the poster and this tasker (idempotent).
+    conversation_service.get_or_create_conversation(db, task, me)
     return OfferOut.model_validate(offer)
 
 

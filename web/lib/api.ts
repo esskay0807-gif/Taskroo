@@ -341,3 +341,52 @@ export function getMyTasks(token: string | null): Promise<Task[]> {
 export function getMyOffers(token: string | null): Promise<MyOffer[]> {
   return apiFetch<MyOffer[]>("/v1/me/offers", { token });
 }
+
+// --- Messaging ---
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface ConversationTaskSummary {
+  id: string;
+  title: string;
+  status: TaskStatus;
+}
+
+export interface Conversation {
+  id: string;
+  task: ConversationTaskSummary;
+  other_user: Poster;
+  last_message: Message | null;
+  unread_count: number;
+}
+
+export function getConversations(token: string | null): Promise<Conversation[]> {
+  return apiFetch<Conversation[]>("/v1/conversations", { token });
+}
+
+export function getMessages(
+  token: string | null,
+  conversationId: string,
+): Promise<Message[]> {
+  return apiFetch<Message[]>(`/v1/conversations/${conversationId}/messages`, {
+    token,
+  });
+}
+
+export function sendMessage(
+  token: string | null,
+  conversationId: string,
+  body: string,
+): Promise<Message> {
+  return apiFetch<Message>(`/v1/conversations/${conversationId}/messages`, {
+    token,
+    init: { method: "POST", body: JSON.stringify({ body }) },
+  });
+}

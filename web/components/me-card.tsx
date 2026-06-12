@@ -42,6 +42,9 @@ export function MeCard() {
           <Link href="/dashboard">Dashboard</Link>
         </Button>
         <Button asChild variant="outline">
+          <Link href="/messages">Messages</Link>
+        </Button>
+        <Button asChild variant="outline">
           <Link href="/settings">Edit profile</Link>
         </Button>
         {data && (

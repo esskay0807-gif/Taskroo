@@ -16,9 +16,14 @@ export default function DashboardPage() {
         <Link href="/" className="text-sm text-muted-foreground hover:underline">
           ← Home
         </Link>
-        <Link href="/post" className="text-sm font-medium hover:underline">
-          Post a task →
-        </Link>
+        <div className="flex gap-4 text-sm font-medium">
+          <Link href="/messages" className="hover:underline">
+            Messages
+          </Link>
+          <Link href="/post" className="hover:underline">
+            Post a task →
+          </Link>
+        </div>
       </div>
       <h1 className="mb-8 text-2xl font-bold">Dashboard</h1>
 

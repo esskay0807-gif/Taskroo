@@ -2,7 +2,16 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import categories, health, me, offers, tasks, uploads, users
+from app.routers import (
+    categories,
+    conversations,
+    health,
+    me,
+    offers,
+    tasks,
+    uploads,
+    users,
+)
 
 settings = get_settings()
 
@@ -25,4 +34,5 @@ v1.include_router(uploads.router)
 v1.include_router(categories.router)
 v1.include_router(tasks.router)
 v1.include_router(offers.router)
+v1.include_router(conversations.router)
 app.include_router(v1)
