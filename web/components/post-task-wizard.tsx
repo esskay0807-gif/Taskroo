@@ -15,6 +15,7 @@ import {
   type TaskCreateInput,
 } from "@/lib/api";
 import { formatBudget } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +70,13 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
-const STEPS = ["Details", "Location", "Budget", "Photos", "Review"] as const;
+const STEPS = [
+  { label: "Details", heading: "What do you need done?", sub: "Give your task a clear title and description." },
+  { label: "Location", heading: "Where is it?", sub: "In person or remote — taskers nearby can help." },
+  { label: "Budget", heading: "What's your budget?", sub: "A range helps taskers send realistic offers." },
+  { label: "Photos", heading: "Add photos", sub: "Optional, but they help taskers understand the job." },
+  { label: "Review", heading: "Review & post", sub: "Check the details, then post your task." },
+] as const;
 
 const STEP_FIELDS: Path<FormValues>[][] = [
   ["title", "description", "category_id"],
@@ -78,6 +85,11 @@ const STEP_FIELDS: Path<FormValues>[][] = [
   [],
   [],
 ];
+
+function initialTitle(): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("title") ?? "";
+}
 
 export function PostTaskWizard() {
   const router = useRouter();
@@ -95,13 +107,14 @@ export function PostTaskWizard() {
     register,
     trigger,
     watch,
+    setValue,
     getValues,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onTouched",
     defaultValues: {
-      title: "",
+      title: initialTitle(),
       description: "",
       category_id: "",
       location_type: "in_person",
@@ -163,33 +176,42 @@ export function PostTaskWizard() {
   }
 
   const v = getValues();
+  const current = STEPS[step];
+  const progress = ((step + 1) / STEPS.length) * 100;
 
   return (
-    <div className="space-y-6">
-      {/* Step indicator */}
-      <ol className="flex flex-wrap gap-2 text-xs">
-        {STEPS.map((label, i) => (
-          <li
-            key={label}
-            className={
-              "rounded-full border px-2.5 py-1 " +
-              (i === step
-                ? "border-primary font-medium text-primary"
-                : i < step
-                  ? "border-green-600 text-green-700"
-                  : "text-muted-foreground")
-            }
-          >
-            {i + 1}. {label}
-          </li>
-        ))}
-      </ol>
+    <div className="space-y-8">
+      {/* Progress */}
+      <div>
+        <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
+          <span>
+            Step {step + 1} of {STEPS.length}
+          </span>
+          <span>{current.label}</span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">{current.heading}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{current.sub}</p>
+      </div>
 
       {step === 0 && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" {...register("title")} placeholder="e.g. Deep clean my apartment" />
+            <Label htmlFor="title">Task title</Label>
+            <Input
+              id="title"
+              className="h-12 text-base"
+              {...register("title")}
+              placeholder="e.g. Deep clean my 2-bedroom apartment"
+            />
             {errors.title && (
               <p className="text-xs text-red-600">{errors.title.message}</p>
             )}
@@ -198,8 +220,9 @@ export function PostTaskWizard() {
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
+              className="min-h-32"
               {...register("description")}
-              placeholder="Describe what you need done"
+              placeholder="Share the details — what, when, and anything a tasker should know."
             />
             {errors.description && (
               <p className="text-xs text-red-600">
@@ -209,7 +232,7 @@ export function PostTaskWizard() {
           </div>
           <div className="space-y-2">
             <Label>Category</Label>
-            <Select {...register("category_id")}>
+            <Select className="h-12" {...register("category_id")}>
               <option value="">Select a category…</option>
               {categories?.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -227,70 +250,94 @@ export function PostTaskWizard() {
       )}
 
       {step === 1 && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Location type</Label>
-            <Select {...register("location_type")}>
-              <option value="in_person">In person</option>
-              <option value="remote">Remote</option>
-            </Select>
+        <div className="space-y-5">
+          <input type="hidden" {...register("location_type")} />
+          <div className="grid grid-cols-2 gap-3">
+            {(
+              [
+                { v: "in_person", t: "In person", d: "At a location", icon: "📍" },
+                { v: "remote", t: "Remote", d: "Done online", icon: "💻" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() =>
+                  setValue("location_type", opt.v, { shouldValidate: true })
+                }
+                className={cn(
+                  "rounded-xl border-2 p-4 text-left transition-colors",
+                  locationType === opt.v
+                    ? "border-primary bg-accent"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="text-2xl">{opt.icon}</div>
+                <div className="mt-2 font-semibold">{opt.t}</div>
+                <div className="text-xs text-muted-foreground">{opt.d}</div>
+              </button>
+            ))}
           </div>
           {locationType === "in_person" && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
-                <Input id="city" {...register("city")} placeholder="Bengaluru" />
+                <Input id="city" className="h-12" {...register("city")} placeholder="Bengaluru" />
                 {errors.city && (
                   <p className="text-xs text-red-600">{errors.city.message}</p>
                 )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address (optional)</Label>
-                <Input id="address" {...register("address")} placeholder="Area / street" />
+                <Input id="address" className="h-12" {...register("address")} placeholder="Area / street" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="lat">Latitude (optional)</Label>
-                  <Input id="lat" {...register("lat")} placeholder="12.97" />
+                  <Input id="lat" className="h-12" {...register("lat")} placeholder="12.97" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lng">Longitude (optional)</Label>
-                  <Input id="lng" {...register("lng")} placeholder="77.59" />
+                  <Input id="lng" className="h-12" {...register("lng")} placeholder="77.59" />
                 </div>
               </div>
             </>
           )}
           {locationType === "remote" && (
-            <p className="text-sm text-muted-foreground">
-              Remote tasks don&apos;t need a location.
+            <p className="rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+              Remote tasks don&apos;t need a location — taskers can help from anywhere.
             </p>
           )}
         </div>
       )}
 
       {step === 2 && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="budget_min">Min budget (₹)</Label>
-            <Input id="budget_min" type="number" {...register("budget_min")} placeholder="1500" />
-            {errors.budget_min && (
-              <p className="text-xs text-red-600">{errors.budget_min.message}</p>
-            )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget_min">Min budget (₹)</Label>
+              <Input id="budget_min" type="number" className="h-12" {...register("budget_min")} placeholder="1500" />
+              {errors.budget_min && (
+                <p className="text-xs text-red-600">{errors.budget_min.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget_max">Max budget (₹)</Label>
+              <Input id="budget_max" type="number" className="h-12" {...register("budget_max")} placeholder="3000" />
+              {errors.budget_max && (
+                <p className="text-xs text-red-600">{errors.budget_max.message}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="budget_max">Max budget (₹)</Label>
-            <Input id="budget_max" type="number" {...register("budget_max")} placeholder="3000" />
-            {errors.budget_max && (
-              <p className="text-xs text-red-600">{errors.budget_max.message}</p>
-            )}
-          </div>
+          <p className="rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+            Taskers send offers around this range — you only pay when you accept one.
+          </p>
         </div>
       )}
 
       {step === 3 && (
-        <div className="space-y-3">
-          <Label>Photos (optional, up to 10)</Label>
-          <label className="inline-block">
+        <div className="space-y-4">
+          <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-accent/40">
             <input
               type="file"
               accept="image/*"
@@ -299,52 +346,63 @@ export function PostTaskWizard() {
               onChange={handlePhotos}
               disabled={uploading || photoUrls.length >= 10}
             />
-            <Button type="button" variant="outline" size="sm" asChild>
-              <span>{uploading ? "Uploading…" : "Add photos"}</span>
-            </Button>
+            <span className="text-2xl">🖼️</span>
+            <span className="mt-1">
+              {uploading ? "Uploading…" : "Click to add photos (up to 10)"}
+            </span>
           </label>
-          <div className="flex flex-wrap gap-2">
-            {photoUrls.map((url) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={url}
-                src={url}
-                alt="Task photo"
-                className="h-20 w-20 rounded border object-cover"
-              />
-            ))}
-          </div>
+          {photoUrls.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {photoUrls.map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={url}
+                  src={url}
+                  alt="Task photo"
+                  className="h-24 w-24 rounded-lg border object-cover"
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {step === 4 && (
-        <div className="space-y-3 rounded-lg border p-4 text-sm">
-          <p className="text-base font-medium">{v.title || "(no title)"}</p>
-          <p className="whitespace-pre-wrap text-muted-foreground">
+        <div className="space-y-4 rounded-xl border bg-secondary/40 p-5">
+          <p className="text-lg font-semibold">{v.title || "(no title)"}</p>
+          <p className="whitespace-pre-wrap text-sm text-muted-foreground">
             {v.description}
           </p>
-          <dl className="grid grid-cols-2 gap-2">
-            <dt className="text-muted-foreground">Category</dt>
-            <dd>
-              {categories?.find((c) => c.id === v.category_id)?.name ?? "—"}
-            </dd>
-            <dt className="text-muted-foreground">Location</dt>
-            <dd>
-              {v.location_type === "remote"
-                ? "Remote"
-                : [v.city, v.address].filter(Boolean).join(", ") || "In person"}
-            </dd>
-            <dt className="text-muted-foreground">Budget</dt>
-            <dd>
-              {v.budget_min && v.budget_max
-                ? formatBudget(Number(v.budget_min), Number(v.budget_max))
-                : "—"}
-            </dd>
-            <dt className="text-muted-foreground">Photos</dt>
-            <dd>{photoUrls.length}</dd>
+          <dl className="grid grid-cols-1 gap-3 border-t pt-4 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Category</dt>
+              <dd className="font-medium">
+                {categories?.find((c) => c.id === v.category_id)?.name ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Location</dt>
+              <dd className="font-medium">
+                {v.location_type === "remote"
+                  ? "Remote"
+                  : [v.city, v.address].filter(Boolean).join(", ") || "In person"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Budget</dt>
+              <dd className="font-medium">
+                {v.budget_min && v.budget_max
+                  ? formatBudget(Number(v.budget_min), Number(v.budget_max))
+                  : "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Photos</dt>
+              <dd className="font-medium">{photoUrls.length}</dd>
+            </div>
           </dl>
           {mutation.isError && (
-            <p className="text-red-600">
+            <p className="text-sm text-red-600">
               {(mutation.error as Error).message}
             </p>
           )}
@@ -352,21 +410,27 @@ export function PostTaskWizard() {
       )}
 
       {/* Nav */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-t pt-6">
         <Button
           type="button"
           variant="ghost"
           onClick={() => setStep((s) => Math.max(s - 1, 0))}
           disabled={step === 0 || mutation.isPending}
         >
-          Back
+          ← Back
         </Button>
         {step < STEPS.length - 1 ? (
-          <Button type="button" onClick={next}>
-            Next
+          <Button type="button" size="lg" className="rounded-full px-8" onClick={next}>
+            Continue
           </Button>
         ) : (
-          <Button type="button" onClick={submit} disabled={mutation.isPending}>
+          <Button
+            type="button"
+            size="lg"
+            className="rounded-full px-8"
+            onClick={submit}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? "Posting…" : "Post task"}
           </Button>
         )}

@@ -16,6 +16,15 @@ const POPULAR = [
   "plumbing",
 ];
 
+const QUICK_TASKS = [
+  "Clean my apartment",
+  "Assemble flat-pack furniture",
+  "Help me move house",
+  "Fix a leaking tap",
+  "Mount a TV",
+  "Design a logo",
+];
+
 async function fetchCategories(): Promise<Category[]> {
   try {
     return await getCategories();
@@ -31,79 +40,83 @@ export default async function Home() {
 
   return (
     <main>
-      {/* Hero */}
+      {/* Hero — centred on posting a task */}
       <section className="hero-wash">
-        <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-          <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-            India’s friendly task marketplace
+        <div className="mx-auto max-w-3xl px-6 pb-16 pt-20 text-center">
+          <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+            Get almost anything done
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Post a task. <span className="text-primary">Get it done.</span>
+          <h1 className="mt-5 text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl">
+            Post a task.
+            <br className="hidden sm:block" /> Get it{" "}
+            <span className="text-primary">done.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Describe what you need, get offers from trusted, reviewed taskers near
-            you, chat, and pay securely once it’s done.
+          <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
+            Describe what you need, get offers from trusted, reviewed taskers,
+            and pay securely once it&apos;s done.
           </p>
 
-          {/* Search → browse */}
+          {/* Hero post box */}
           <form
-            action="/browse"
+            action="/post"
             method="get"
-            className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border bg-card p-1.5 shadow-sm"
+            className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border bg-card p-2 shadow-lg shadow-primary/5"
           >
             <input
-              name="q"
+              name="title"
               placeholder="In a few words, what do you need done?"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground"
             />
-            <Button type="submit" size="lg" className="rounded-full px-6">
-              Search
+            <Button type="submit" size="lg" className="rounded-full px-7">
+              Post a task
             </Button>
           </form>
 
-          <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-            <span className="text-muted-foreground">or</span>
-            <Button asChild variant="outline" className="rounded-full">
-              <Link href="/post">Post a task — it’s free</Link>
-            </Button>
+          {/* Quick task prompts */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs text-muted-foreground">Popular:</span>
+            {QUICK_TASKS.map((t) => (
+              <Link
+                key={t}
+                href={`/post?title=${encodeURIComponent(t)}`}
+                className="rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              >
+                {t}
+              </Link>
+            ))}
           </div>
 
-          {/* Trust strip */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span>★★★★★ Reviewed taskers</span>
-            <span>· Secure escrow payments</span>
-            <span>· No job too big or small</span>
-          </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Looking for work instead?{" "}
+            <Link href="/browse" className="font-medium text-primary hover:underline">
+              Browse open tasks →
+            </Link>
+          </p>
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories → browse */}
       {chips.length > 0 && (
-        <section className="mx-auto max-w-5xl px-6 py-14">
+        <section className="mx-auto max-w-5xl px-6 py-16">
           <h2 className="text-center text-2xl font-bold">
-            Popular categories
+            What can you get done?
           </h2>
           <p className="mt-1 text-center text-sm text-muted-foreground">
-            Browse tasks by what you need help with.
+            From a quick fix to a big project — there&apos;s a tasker for it.
           </p>
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {chips.map((c) => (
               <Link
                 key={c.id}
-                href={`/browse?category=${c.slug}`}
-                className="group rounded-xl border bg-card p-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                href={`/post?title=${encodeURIComponent(c.name)}`}
+                className="group rounded-2xl border bg-card p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
               >
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
                   <CategoryIcon slug={c.slug} />
                 </div>
-                <span className="text-sm font-medium">{c.name}</span>
+                <span className="text-sm font-semibold">{c.name}</span>
               </Link>
             ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Button asChild variant="outline" className="rounded-full">
-              <Link href="/browse">Browse all tasks</Link>
-            </Button>
           </div>
         </section>
       )}
@@ -111,27 +124,15 @@ export default async function Home() {
       {/* How it works */}
       <section className="border-t bg-secondary/40">
         <div className="mx-auto max-w-5xl px-6 py-16">
-          <h2 className="text-center text-2xl font-bold">How it works</h2>
+          <h2 className="text-center text-2xl font-bold">How Taskroo works</h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {[
-              {
-                n: "1",
-                t: "Describe your task",
-                d: "Tell us what you need done, where, and your budget.",
-              },
-              {
-                n: "2",
-                t: "Get offers",
-                d: "Reviewed taskers send offers. Compare ratings and chat.",
-              },
-              {
-                n: "3",
-                t: "Pay securely",
-                d: "Funds are held in escrow and released when you’re happy.",
-              },
+              { n: "1", t: "Describe your task", d: "Tell us what you need done, where, and your budget." },
+              { n: "2", t: "Get offers", d: "Reviewed taskers send offers. Compare ratings and chat." },
+              { n: "3", t: "Pay securely", d: "Funds are held in escrow and released when you're happy." },
             ].map((s) => (
               <div key={s.n} className="text-center">
-                <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
                   {s.n}
                 </div>
                 <h3 className="mt-4 font-semibold">{s.t}</h3>
@@ -165,5 +166,5 @@ function CategoryIcon({ slug }: { slug: string }) {
     photography: "📷",
     "web-design": "💻",
   };
-  return <span className="text-xl">{map[slug] ?? "✅"}</span>;
+  return <span className="text-2xl">{map[slug] ?? "✅"}</span>;
 }

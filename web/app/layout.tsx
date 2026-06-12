@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { Providers } from "./providers";
 import { TopBar } from "@/components/top-bar";
+import { Footer } from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -23,8 +24,11 @@ export default function RootLayout({
       <html lang="en" className={inter.variable}>
         <body className="min-h-screen bg-background font-sans antialiased">
           <Providers>
-            <TopBar />
-            {children}
+            <div className="flex min-h-screen flex-col">
+              <TopBar />
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
           </Providers>
         </body>
       </html>
