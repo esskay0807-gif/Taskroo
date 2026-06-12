@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -78,6 +79,7 @@ class UserUpdate(BaseModel):
 class PresignRequest(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     content_type: str = Field(min_length=1, max_length=128)
+    kind: Literal["avatar", "task"] = "avatar"
 
 
 class PresignResponse(BaseModel):

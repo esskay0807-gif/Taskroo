@@ -20,16 +20,21 @@ def _extension(filename: str) -> str:
     return ext.lower()
 
 
-def build_avatar_key(clerk_id: str, filename: str) -> str:
+# Maps the upload "kind" to a key prefix / folder.
+_KIND_PREFIX = {"avatar": "avatars", "task": "tasks"}
+
+
+def build_upload_key(kind: str, clerk_id: str, filename: str) -> str:
     # Avoid path traversal / weird ids in the key by namespacing on a uuid.
+    prefix = _KIND_PREFIX.get(kind, "misc")
     safe_id = clerk_id.replace("/", "_")
-    return f"avatars/{safe_id}/{uuid.uuid4().hex}{_extension(filename)}"
+    return f"{prefix}/{safe_id}/{uuid.uuid4().hex}{_extension(filename)}"
 
 
-def presign_avatar_upload(
-    settings: Settings, clerk_id: str, filename: str, content_type: str
+def presign_upload(
+    settings: Settings, kind: str, clerk_id: str, filename: str, content_type: str
 ) -> PresignResponse:
-    key = build_avatar_key(clerk_id, filename)
+    key = build_upload_key(kind, clerk_id, filename)
 
     if settings.r2_configured:
         import boto3

@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from app.auth.clerk import CurrentUser, get_current_user
 from app.config import Settings, get_settings
 from app.schemas.user import PresignRequest, PresignResponse
-from app.services.storage_service import dev_upload_path, presign_avatar_upload
+from app.services.storage_service import dev_upload_path, presign_upload
 
 router = APIRouter(tags=["uploads"])
 
@@ -17,9 +17,9 @@ def presign_upload(
     principal: CurrentUser = Depends(get_current_user),
     settings: Settings = Depends(get_settings),
 ) -> PresignResponse:
-    """Return a presigned URL to upload an avatar (R2, or a local dev fallback)."""
-    return presign_avatar_upload(
-        settings, principal.clerk_id, payload.filename, payload.content_type
+    """Return a presigned URL to upload a file (R2, or a local dev fallback)."""
+    return presign_upload(
+        settings, payload.kind, principal.clerk_id, payload.filename, payload.content_type
     )
 
 

@@ -120,9 +120,11 @@ export function getUser(id: string): Promise<PublicUser> {
   return apiFetch<PublicUser>(`/v1/users/${id}`);
 }
 
+export type UploadKind = "avatar" | "task";
+
 export function presignUpload(
   token: string | null,
-  body: { filename: string; content_type: string },
+  body: { filename: string; content_type: string; kind: UploadKind },
 ): Promise<PresignResponse> {
   return apiFetch<PresignResponse>("/v1/uploads/presign", {
     token,
@@ -131,13 +133,15 @@ export function presignUpload(
 }
 
 /** Upload a file to a presigned URL, then return the public URL to store. */
-export async function uploadAvatar(
+export async function uploadFile(
   token: string | null,
   file: File,
+  kind: UploadKind,
 ): Promise<string> {
   const presigned = await presignUpload(token, {
     filename: file.name,
     content_type: file.type || "application/octet-stream",
+    kind,
   });
   const res = await fetch(presigned.upload_url, {
     method: presigned.method,
@@ -145,7 +149,124 @@ export async function uploadAvatar(
     body: file,
   });
   if (!res.ok) {
-    throw new ApiError(res.status, `Avatar upload failed (${res.status})`);
+    throw new ApiError(res.status, `Upload failed (${res.status})`);
   }
   return presigned.public_url;
+}
+
+export function uploadAvatar(token: string | null, file: File): Promise<string> {
+  return uploadFile(token, file, "avatar");
+}
+
+// --- Tasks & categories ---
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface TaskPhoto {
+  id: string;
+  url: string;
+  sort_order: number;
+}
+
+export interface Poster {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  rating_avg: number;
+  rating_count: number;
+}
+
+export type TaskStatus =
+  | "draft"
+  | "open"
+  | "assigned"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+export type LocationType = "in_person" | "remote";
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  location_type: LocationType;
+  city: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  budget_min: number;
+  budget_max: number;
+  currency: string;
+  category: Category;
+  poster: Poster;
+  photos: TaskPhoto[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskListResponse {
+  items: Task[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface TaskCreateInput {
+  title: string;
+  description: string;
+  category_id: string;
+  location_type: LocationType;
+  city?: string | null;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  budget_min: number;
+  budget_max: number;
+  photo_urls?: string[];
+}
+
+export interface TaskFilters {
+  category?: string;
+  location_type?: LocationType | "";
+  city?: string;
+  budget_min?: number | "";
+  budget_max?: number | "";
+  q?: string;
+  sort?: "newest" | "budget_asc" | "budget_desc";
+  limit?: number;
+  offset?: number;
+}
+
+export function getCategories(): Promise<Category[]> {
+  return apiFetch<Category[]>("/v1/categories");
+}
+
+export function createTask(
+  token: string | null,
+  input: TaskCreateInput,
+): Promise<Task> {
+  return apiFetch<Task>("/v1/tasks", {
+    token,
+    init: { method: "POST", body: JSON.stringify(input) },
+  });
+}
+
+export function listTasks(filters: TaskFilters = {}): Promise<TaskListResponse> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== null && value !== "") {
+      params.set(key, String(value));
+    }
+  }
+  const qs = params.toString();
+  return apiFetch<TaskListResponse>(`/v1/tasks${qs ? `?${qs}` : ""}`);
+}
+
+export function getTask(id: string): Promise<Task> {
+  return apiFetch<Task>(`/v1/tasks/${id}`);
 }

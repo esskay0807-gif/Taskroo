@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   SignedIn,
   SignedOut,
@@ -14,9 +15,17 @@ export default function Home() {
       <div>
         <h1 className="text-3xl font-bold">TaskMarket</h1>
         <p className="mt-2 text-muted-foreground">
-          Phase 1 scaffold (M0). Post a task → offers → hire → chat → pay →
-          review.
+          Post a task → offers → hire → chat → pay → review.
         </p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button asChild>
+          <Link href="/browse">Browse tasks</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/post">Post a task</Link>
+        </Button>
       </div>
 
       <div className="flex items-center gap-3">
